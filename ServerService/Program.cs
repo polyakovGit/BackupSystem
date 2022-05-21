@@ -8,8 +8,12 @@ IHost host = Host.CreateDefaultBuilder(args)
     {
         services.AddHostedService<Server>();
     })
+    .UseWindowsService(options =>
+        {
+            options.ServiceName = "MainService";
+        })
     .Build();
 
 await host.RunAsync();
-var server = new Server();
-await server.Listen();
+//var server = new Server();
+//await server.Listen();
