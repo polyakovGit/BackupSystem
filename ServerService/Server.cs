@@ -1,6 +1,6 @@
 using Network;
 using SharedData;
-
+using System.IO;
 namespace ServerService
 {
     public class Server : BackgroundService
@@ -20,6 +20,7 @@ namespace ServerService
         }
         private static async void HandlerCommand(SharedClass packet, Connection connection)
         {
+            var exePath = AppDomain.CurrentDomain.BaseDirectory;
             var shared = new SharedClass();
             switch (packet.Command)
             {
@@ -28,17 +29,17 @@ namespace ServerService
                     {
                         shared.Command = "result";
                         
-                        await File.AppendAllTextAsync("log.txt","->Get files for backup\n");
+                        await File.AppendAllTextAsync(Path.Combine(exePath,"log.txt"), "->Get files for backup\n");
 
                         var files = FilesInfo.FromBin(packet.Files);
                         foreach (var file in files.Data)
-                            await File.WriteAllBytesAsync($@"BackupFiles\{file.NameFile}", file.Bin);
+                            await File.WriteAllBytesAsync(Path.Combine(exePath,$@"BackupFiles\{file.NameFile}"), file.Bin);
 
                         shared.Value = "OK";
                         break;
                     }
                 default:
-                    await File.AppendAllTextAsync("log.txt",$"-> Command not found! ({packet.Command})");
+                    await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"-> Command not found! ({packet.Command})");
                     break;
             }
 
@@ -58,7 +59,7 @@ namespace ServerService
                     // обработка ошибки однократного неуспешного выполнения фоновой задачи
                 }
 
-                await Task.Delay(5000);
+                await Task.Delay(1000);
             }
         }
     }

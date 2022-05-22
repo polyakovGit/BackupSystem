@@ -21,7 +21,7 @@ public static class Globals
         if (!File.Exists(NameSetupFile))
             SaveSetup();
         Process.Start(@"C:\WINDOWS\system32\sc.exe",
-        $"create test binPath=\"{Environment.CurrentDirectory}\\ClientService\\ClientService.exe\"");
+        $"create test start=auto binPath=\"{Environment.CurrentDirectory}\\ClientService\\ClientService.exe\"");
         Process.Start(@"C:\Windows\system32\sc.exe", $"start test \"{Environment.CurrentDirectory}\"");
     }
 
