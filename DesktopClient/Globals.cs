@@ -1,43 +1,72 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using System.Runtime.InteropServices;
+using Network;
+using SharedData;
+
 
 namespace DesktopClient;
 
 public static class Globals
 {
-    private const string NameSetupFile = "Setup.json";
-    public static Setup? Setup { get; private set; } = null;
+    public const string SERVER_IP = "127.0.0.1";
+    public const int SERVER_PORT = 1708;
+    public static TasksInfo Tasks;
+    private static TcpConnection? _connection;
+    public static Main? MainWindow;
 
-    public static void Init()
+
+    public static bool Init()
     {
-        Setup = File.Exists(NameSetupFile)
-            ? JsonConvert.DeserializeObject<Setup>(File.ReadAllText(NameSetupFile))
-            : new Setup();
-
-        if (!File.Exists(NameSetupFile))
-            SaveSetup();
         Process.Start(@"C:\WINDOWS\system32\sc.exe",
         $"create test start=auto binPath=\"{Environment.CurrentDirectory}\\ClientService\\ClientService.exe\"");
         Process.Start(@"C:\Windows\system32\sc.exe", $"start test \"{Environment.CurrentDirectory}\"");
+
+        return Connect();
     }
 
-    public static void SaveSetup()
+    public static bool Connect()
     {
-        File.WriteAllText(NameSetupFile, JsonConvert.SerializeObject(Setup));
+        ConnectionResult result = ConnectionResult.TCPConnectionNotAlive;
+        _connection = ConnectionFactory.CreateTcpConnection(SERVER_IP, SERVER_PORT, out result);
+        if (result == ConnectionResult.Connected)
+        {
+            _connection.RegisterStaticPacketHandler<SharedRequest>(RecvHandler);
+            return true;
+        }
+
+        return false;
     }
-}
 
-public class Setup
-{
-    public Dictionary<string, DataFile> PathsToFiles = new();
-}
+    private static async void RecvHandler(SharedRequest packet, Connection connection)
+    {
+        string result = "Error";
+        switch (packet.Command)
+        {
+            case "tasks":
+                {
+                    Tasks = TasksInfo.FromArray(packet.Data);
+                    if (MainWindow != null)
+                        MainWindow.BeginInvoke((Action)(() => MainWindow.UpdateTable(Globals.Tasks)));
+                    result = "OK";
+                    break;
+                }
+            default:
+                result = "Unknown command";
+                break;
+        }
 
-public struct DataFile
-{
-    public int TypeTimeBackup;
-    public DateTime TimeBackup;
+        connection.Send(new SharedResponse(result, packet));
+    }
+
+    public static async void SendTasks()
+    {
+        if (_connection == null)
+            return;
+
+        await _connection.SendAsync<SharedResponse>(new SharedRequest()
+        {
+            Command = "tasks",
+            Data = Tasks.ToArray()
+        });
+    }
 }

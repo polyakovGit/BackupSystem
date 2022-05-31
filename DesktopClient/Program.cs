@@ -23,10 +23,15 @@ internal static class Program
             return;
         }
 
-        Globals.Init();
+        if (!Globals.Init())
+        {
+            MessageBox.Show("Не удалось соединиться с сервером");
+            return;
+        }
         
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new Main());
+        Globals.MainWindow = new Main();
+        Application.Run(Globals.MainWindow);
     }
 }

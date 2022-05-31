@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading;
-using Newtonsoft.Json;
+using Network;
 using SharedData;
 
 namespace ClientService;
@@ -12,28 +12,32 @@ namespace ClientService;
 #pragma warning disable CA1416
 public class WinService : ServiceBase
 {
-    private const string Servicename = "ClientService";
+    private const string SERVICE_NAME = "ClientService";
+    private const string SERVER_IP = "127.0.0.1";
+    private const int SERVER_PORT = 1708;
     private string _homePath;
     private bool _isWork = false;
-    private Dictionary<string, DateTime> _nextBackup;
+    private TasksInfo _tasks;
+    private TcpConnection? _client;
 
     public WinService()
     {
-        this.ServiceName = Servicename;
+        this.ServiceName = SERVICE_NAME;
         this.CanStop = true;
         this.CanPauseAndContinue = false;
         this.AutoLog = false;
 
         _homePath = string.Empty;
-        _nextBackup = new Dictionary<string, DateTime>();
+        _tasks = new TasksInfo();
+        _client = null;
     }
 
     protected override async void OnStart(string[] args)
     {
         if (args.Length == 0)
             Stop();
-        
-        await Client.Connect("127.0.0.1");
+
+        await Connect();
         _homePath = args[0];
         _isWork = true; 
         await Task.Run(Handler);
@@ -45,59 +49,96 @@ public class WinService : ServiceBase
         _isWork = false;
     }
 
+    private async Task Connect()
+    {
+        var result = await ConnectionFactory.CreateTcpConnectionAsync(SERVER_IP, SERVER_PORT);
+        if (result.Item2 == ConnectionResult.Connected)
+        {
+            _client = result.Item1;
+            _client.RegisterPacketHandler<SharedRequest>(RecvHandler, this);
+        }
+    }
+
+    private async void RecvHandler(SharedRequest packet, Connection connection)
+    {
+        string result = "Error";
+        switch (packet.Command)
+        {
+            case "tasks":
+                {
+                    _tasks = TasksInfo.FromArray(packet.Data);
+                    result = "OK";
+                    break;
+                }
+            default:
+                result = "Unknown command";
+                break;
+        }
+
+        connection.Send(new SharedResponse(result, packet));
+    }
+
     private async Task Handler()
     {
         while (_isWork)
         {
-            var data = JsonConvert.DeserializeObject<Setup>(await File.ReadAllTextAsync($@"{_homePath}\Setup.json"));
-            var filesForBackup = new FilesInfo();
-
-            foreach (var file in data!.PathsToFiles.Where(file => !_nextBackup.ContainsKey(file.Key)))
-                _nextBackup.Add(file.Key, DateTime.Now);
-
-            var tmpDictForRemove = (from keyValuePair in _nextBackup where !data.PathsToFiles.ContainsKey(keyValuePair.Key) select keyValuePair.Key).ToList();
-
-            foreach (var dictForRemove in tmpDictForRemove)
-                _nextBackup.Remove(dictForRemove);
-
-            foreach (var file in _nextBackup.Where(file => file.Value <= DateTime.Now && File.Exists(file.Key)))
+            //Если нет подключения, то пытаемся подключиться к серверу
+            if (_client == null)
             {
-                var dateTime = DateTime.Now;
-                var timeSpan = new TimeSpan(data.PathsToFiles[file.Key].TimeBackup.Hour, data.PathsToFiles[file.Key].TimeBackup.Minute, data.PathsToFiles[file.Key].TimeBackup.Second);
-
-                dateTime = data.PathsToFiles[file.Key].TypeTimeBackup switch
+                await Connect();
+            }
+            else 
+            {
+                var filesForBackup = new FilesInfo();
+                var updatedTasks = new List<BackupTask>();
+                foreach (var task in _tasks.Data.Values.Where(task => task.NextBackupTime <= DateTime.Now))
                 {
-                    0 => dateTime.AddDays(1),
-                    1 => dateTime.AddDays(7),
-                    2 => dateTime.AddMonths(1),
-                    _ => dateTime
-                };
+                    if (File.Exists(task.FileName))
+                    {
+                        filesForBackup.Add(task.FileName, await File.ReadAllBytesAsync(task.FileName));
+                        BackupTask updatedTask = task;
+                        updatedTask.Status = SharedData.TaskStatus.Working;
+                        updatedTask.UpdateNextBackupTime();
+                        updatedTask.LastBackupTime = DateTime.Now;
+                        updatedTasks.Add(updatedTask);
+                    }
+                    else
+                    {
+                        BackupTask updatedTask = task;
+                        updatedTask.Status = SharedData.TaskStatus.Error_NoFile;
+                        updatedTask.UpdateNextBackupTime();
+                        updatedTasks.Add(updatedTask);
+                    }
+                }
 
-                _nextBackup[file.Key] = dateTime.Date + timeSpan;
-                filesForBackup.Add(new FileInfo(file.Key).Name, await File.ReadAllBytesAsync(file.Key));
+                if (filesForBackup.Data.Count > 0)
+                {
+                    //send backup files
+                    await _client.SendAsync<SharedResponse>(new SharedRequest()
+                    {
+                        Command = "backup",
+                        Data = filesForBackup.ToArray()
+                    });
+                }
+
+                if (updatedTasks.Count > 0)
+                {
+                    foreach (var task in updatedTasks)
+                    {
+                        _tasks.Data[task.FileName] = task;
+                    }
+
+                    //send tasks list
+                    await _client.SendAsync<SharedResponse>(new SharedRequest()
+                    {
+                        Command = "tasks",
+                        Data = _tasks.ToArray()
+                    });
+                }
             }
 
-            if (filesForBackup.Data.Count != 0)
-                await Client.Send(new SharedClass()
-                {
-                    Command = "backup",
-                    Files = filesForBackup.ToArray()
-                });
-            
-            await Task.Delay(1_500);
+            await Task.Delay(1000);
         }
     }
 }
 #pragma warning restore CA1416
-
-
-public class Setup
-{
-    public Dictionary<string, DataFile> PathsToFiles = new();
-}
-
-public struct DataFile
-{
-    public int TypeTimeBackup;
-    public DateTime TimeBackup;
-}

@@ -9,12 +9,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
+        <PackageReference Include="Network" Version="6.2.5.23" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Properties" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SharedData\SharedData.csproj" />
     </ItemGroup>
 
 </Project>
