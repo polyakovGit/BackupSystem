@@ -16,5 +16,3 @@ IHost host = Host.CreateDefaultBuilder(args)
     .Build();
 
 await host.RunAsync();
-//var server = new Server();
-//await server.Listen();
