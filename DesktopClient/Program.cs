@@ -22,16 +22,14 @@ internal static class Program
             MessageBox.Show("Запустите с правами администратора");
             return;
         }
-
-        if (!Globals.Init())
-        {
-            MessageBox.Show("Не удалось соединиться с сервером");
-            return;
-        }
         
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Globals.MainWindow = new Main();
-        Application.Run(Globals.MainWindow);
+        Login LoginWindow = new Login();
+        if (LoginWindow.ShowDialog() == DialogResult.OK)
+        {
+            Globals.MainWindow = new Main();
+            Application.Run(Globals.MainWindow);
+        }
     }
 }

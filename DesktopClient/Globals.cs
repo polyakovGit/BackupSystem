@@ -8,8 +8,8 @@ namespace DesktopClient;
 
 public static class Globals
 {
-    public const string SERVER_IP = "127.0.0.1";
-    public const int SERVER_PORT = 1708;
+    public static string SERVER_IP;// = "127.0.0.1";
+    public static int SERVER_PORT;// = 1708;
     public static TasksInfo Tasks;
     private static TcpConnection? _connection;
     public static Main? MainWindow;
