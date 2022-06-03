@@ -96,11 +96,4 @@ public partial class Main : Form
             buttonDelete.Enabled = false;
         }
     }
-
-    private void buttonSettings_Click(object sender, EventArgs e)
-    {
-        var settingsEditDlg = new TaskDatabaseEdit();
-        if (settingsEditDlg.ShowDialog() != DialogResult.OK)
-            return;
-    }
 }
