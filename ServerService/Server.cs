@@ -1,20 +1,31 @@
 using Network;
 using SharedData;
 using System.IO;
+using System.Collections.ObjectModel;
+using System.Text;
+using TTST;
+using Newtonsoft.Json;
+
 namespace ServerService
 {
     public class Server : BackgroundService
     {
+
         private ServerConnectionContainer _server;
         private const string TASKS_FILENAME = "Tasks.json";
         private TasksInfo _tasks;
 
+        string exePath = AppDomain.CurrentDomain.BaseDirectory;
+        public static ObservableCollection<UserStruct> userDB { get; set; } = new ObservableCollection<UserStruct>();
+
         public async Task Listen()
         {
+            LoadUsers();
             _server = ConnectionFactory.CreateServerConnectionContainer(1708, false);
             _server.AllowUDPConnections = false;
             _server.ConnectionEstablished += (conn, type) =>
             {
+                File.AppendAllText(Path.Combine(exePath, "log.txt"), $"-> New connection\n");
                 conn.RegisterPacketHandler<SharedRequest>(HandlerCommand, this);
                 conn.SendAsync<SharedResponse>(new SharedRequest()
                 {
@@ -25,9 +36,25 @@ namespace ServerService
 
             await _server.Start();
         }
+        void LoadUsers()
+        {
+            if (File.Exists("users.json"))
+            {
+                userDB = JsonConvert.DeserializeObject<ObservableCollection<UserStruct>>(File.ReadAllText("users.json"));
+
+                File.AppendAllText(Path.Combine(exePath, "log.txt"), $"Loaded {userDB.Count.ToString()} users\n");
+            }
+            else
+            {
+                UserStruct userStruct = new UserStruct() { Username = "root", Password = new Random().Next(99999, 999999).ToString() };
+                userDB.Add(userStruct);
+                File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"No find user! Creating main user: {userStruct.Username}:{userStruct.Password}\n");
+                File.AppendAllText(Path.Combine(exePath, "users.json"), JsonConvert.SerializeObject(userDB));
+            }
+        }
         private async void HandlerCommand(SharedRequest packet, Connection connection)
         {
-            var exePath = AppDomain.CurrentDomain.BaseDirectory;
+            
             var result = "Error";
             switch (packet.Command)
             {
@@ -63,12 +90,40 @@ namespace ServerService
                         result = "OK";
                         break;
                     }
+                case "Login":
+                    {
+                        string[] logData = Encoding.UTF8.GetString(packet.Data).Split(new string[] { " &*&*& " }, StringSplitOptions.None);
+
+                        string username = logData[0];
+                        string password = logData[1];
+
+                        lock (userDB)
+                        {
+                            var user = userDB.FirstOrDefault(x => x.Username == username && x.Password == password);
+
+                            if (user != null)
+                                SendLoginState(true, connection);
+                            else
+                                SendLoginState(false, connection);
+                        }
+
+                        break;
+                    }
                 default:
-                    await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"-> Command not found! ({packet.Command})");
+                    await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"-> Command not found! ({packet.Command})\n");
                     break;
             }
 
             connection.Send(new SharedResponse(result, packet));
+        }
+        void SendLoginState(bool logged, Connection connection)
+        {
+            File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"Login state...{logged.ToString()}\n");
+            connection.SendAsync<SharedResponse>(new SharedRequest()
+            {
+                Command = "Login",
+                Data = Encoding.UTF8.GetBytes(logged.ToString())
+            });
         }
         protected internal void Disconnect() => _server.Stop();
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
