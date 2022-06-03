@@ -37,7 +37,6 @@
             this.columnHeaderServer = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderSchedule = new System.Windows.Forms.ColumnHeader();
-            this.buttonSettings = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // buttonAdd
@@ -113,22 +112,11 @@
             this.columnHeaderSchedule.Text = "Расписание";
             this.columnHeaderSchedule.Width = 120;
             // 
-            // buttonSettings
-            // 
-            this.buttonSettings.Location = new System.Drawing.Point(368, 12);
-            this.buttonSettings.Name = "buttonSettings";
-            this.buttonSettings.Size = new System.Drawing.Size(75, 23);
-            this.buttonSettings.TabIndex = 6;
-            this.buttonSettings.Text = "Настройки";
-            this.buttonSettings.UseVisualStyleBackColor = true;
-            this.buttonSettings.Click += new System.EventHandler(this.buttonSettings_Click);
-            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(455, 290);
-            this.Controls.Add(this.buttonSettings);
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.buttonDelete);
             this.Controls.Add(this.buttonEdit);
@@ -150,6 +138,5 @@
         private ColumnHeader columnHeaderServer;
         private ColumnHeader columnHeaderStatus;
         private ColumnHeader columnHeaderSchedule;
-        private Button buttonSettings;
     }
 }

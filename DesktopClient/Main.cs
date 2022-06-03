@@ -40,7 +40,7 @@ public partial class Main : Form
 
     private void buttonAdd_Click(object sender, EventArgs e)
     {
-        var taskEditDlg = new TaskEdit();
+        var taskEditDlg = new TaskFileEdit();
         if (taskEditDlg.ShowDialog() != DialogResult.OK)
             return;
         var newTask = taskEditDlg.GetTask();
@@ -53,7 +53,7 @@ public partial class Main : Form
 
     private void buttonEdit_Click(object sender, EventArgs e)
     {
-        var taskEditDlg = new TaskEdit();
+        var taskEditDlg = new TaskFileEdit();
         if (listView1.SelectedItems.Count <= 0)
             return;
 
@@ -99,7 +99,7 @@ public partial class Main : Form
 
     private void buttonSettings_Click(object sender, EventArgs e)
     {
-        var settingsEditDlg = new Settings();
+        var settingsEditDlg = new TaskDatabaseEdit();
         if (settingsEditDlg.ShowDialog() != DialogResult.OK)
             return;
     }

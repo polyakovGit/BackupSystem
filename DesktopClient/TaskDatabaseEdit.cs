@@ -14,10 +14,10 @@ using Microsoft.SqlServer.Management.Common;
 
 namespace DesktopClient
 {
-    public partial class Settings : Form
+    public partial class TaskDatabaseEdit : Form
     {
         Database dtb = Database.getInstance();
-        public Settings()
+        public TaskDatabaseEdit()
         {
             InitializeComponent();
         }

@@ -1,6 +1,6 @@
 ﻿namespace DesktopClient
 {
-    partial class Settings
+    partial class TaskDatabaseEdit
     {
         /// <summary>
         /// Required designer variable.

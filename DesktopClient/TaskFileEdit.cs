@@ -13,9 +13,9 @@ using SharedData;
 
 namespace DesktopClient
 {
-    public partial class TaskEdit : Form
+    public partial class TaskFileEdit : Form
     {
-        public TaskEdit()
+        public TaskFileEdit()
         {
             InitializeComponent();
         }

@@ -1,6 +1,6 @@
 ﻿namespace DesktopClient
 {
-    partial class TaskEdit
+    partial class TaskFileEdit
     {
         /// <summary>
         /// Required designer variable.
