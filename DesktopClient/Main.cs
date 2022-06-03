@@ -96,4 +96,10 @@ public partial class Main : Form
             buttonDelete.Enabled = false;
         }
     }
+
+    private void Main_Load(object sender, EventArgs e)
+    {
+        Login s = new Login();
+        s.ShowDialog();
+    }
 }

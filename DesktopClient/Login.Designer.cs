@@ -89,6 +89,7 @@
             this.textBoxLogin.Name = "textBoxLogin";
             this.textBoxLogin.Size = new System.Drawing.Size(100, 23);
             this.textBoxLogin.TabIndex = 5;
+            this.textBoxLogin.Text = "root";
             // 
             // textBoxPass
             // 
@@ -131,6 +132,8 @@
             this.Controls.Add(this.label1);
             this.Name = "Login";
             this.Text = "АРМ администратора";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Login_FormClosing);
+            this.Load += new System.EventHandler(this.Login_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

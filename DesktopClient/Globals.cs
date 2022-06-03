@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Network;
 using SharedData;
+using System.Text;
 
 
 namespace DesktopClient;
@@ -14,6 +15,8 @@ public static class Globals
     private static TcpConnection? _connection;
     public static Main? MainWindow;
 
+    public static Login Login = null;
+    public static bool connected = false;
 
     public static bool Init()
     {
@@ -30,6 +33,7 @@ public static class Globals
         _connection = ConnectionFactory.CreateTcpConnection(SERVER_IP, SERVER_PORT, out result);
         if (result == ConnectionResult.Connected)
         {
+            connected = true;
             _connection.RegisterStaticPacketHandler<SharedRequest>(RecvHandler);
             return true;
         }
@@ -50,6 +54,32 @@ public static class Globals
                     result = "OK";
                     break;
                 }
+            case "Login":
+                {
+                    bool isLogged = Convert.ToBoolean(Encoding.UTF8.GetString(packet.Data));
+
+                    try
+                    {
+                        if (isLogged)
+                        {
+                            Login.Invoke(new Action(() =>
+                            {
+                                Login.isLogin = true;
+                                Login.Close();
+                            }));
+                        }
+                        else
+                        {
+                            Login.Invoke(new Action(() =>
+                            {
+                                MessageBox.Show("Login of password invalid!", "Login Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                Login.Clear();
+                            }));
+                        }
+                    }
+                    catch { }
+                    break;
+                }
             default:
                 result = "Unknown command";
                 break;
@@ -57,7 +87,18 @@ public static class Globals
 
         connection.Send(new SharedResponse(result, packet));
     }
-
+    public static async void SendLogin(string username, string password)
+    {
+        try
+        {
+            await _connection.SendAsync<SharedResponse>(new SharedRequest()
+            {
+                Command = "Login",
+                Data = Encoding.UTF8.GetBytes($"{username} &*&*& {password}")
+            });
+        }
+        catch { }
+    }
     public static async void SendTasks()
     {
         if (_connection == null)
