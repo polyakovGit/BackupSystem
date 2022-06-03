@@ -13,6 +13,7 @@ namespace DesktopClient;
 
 public partial class Main : Form
 {
+
     public Main()
     {
         InitializeComponent();
@@ -96,5 +97,10 @@ public partial class Main : Form
         }
     }
 
-    
+    private void buttonSettings_Click(object sender, EventArgs e)
+    {
+        var settingsEditDlg = new Settings();
+        if (settingsEditDlg.ShowDialog() != DialogResult.OK)
+            return;
+    }
 }

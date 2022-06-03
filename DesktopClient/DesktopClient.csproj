@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.SqlServer.SqlManagementObjects" Version="161.47021.0" />
         <PackageReference Include="Network" Version="6.2.5.23" />
     </ItemGroup>
 
