@@ -70,7 +70,6 @@
             "Ежедневно",
             "Еженедельно",
             "Ежемесячно"});
-            this.comboBox1.SelectedIndex = 0;
             this.comboBox1.Location = new System.Drawing.Point(89, 35);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(121, 23);
@@ -114,7 +113,7 @@
             this.buttonCancel.Text = "Отмена";
             this.buttonCancel.UseVisualStyleBackColor = true;
             // 
-            // TaskEdit
+            // TaskFileEdit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -130,9 +129,9 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "TaskEdit";
+            this.Name = "TaskFileEdit";
             this.ShowInTaskbar = false;
-            this.Text = "Редактирование задачи";
+            this.Text = "Редактирование задачи резервирования файлов";
             this.ResumeLayout(false);
             this.PerformLayout();
 

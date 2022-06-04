@@ -123,11 +123,11 @@
             this.buttonDisconnect.UseVisualStyleBackColor = true;
             this.buttonDisconnect.Click += new System.EventHandler(this.buttonDisconnect_Click);
             // 
-            // Settings
+            // TaskDatabaseEdit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(396, 381);
+            this.ClientSize = new System.Drawing.Size(450, 381);
             this.Controls.Add(this.buttonDisconnect);
             this.Controls.Add(this.labelConnectionStatus);
             this.Controls.Add(this.buttonConnect);
@@ -137,8 +137,8 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
-            this.Name = "Settings";
-            this.Text = "Настройки";
+            this.Name = "TaskDatabaseEdit";
+            this.Text = "Редактирование задачи резервирования баз данных";
             this.Load += new System.EventHandler(this.Settings_Load);
             this.ResumeLayout(false);
             this.PerformLayout();

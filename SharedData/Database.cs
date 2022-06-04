@@ -8,7 +8,7 @@ using Microsoft.SqlServer.Management.Common;
 
 namespace DesktopClient
 {
-    class Database
+    public class Database
     {
         private static Database instance;
         private Database() { }
