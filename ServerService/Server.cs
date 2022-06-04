@@ -36,11 +36,11 @@ namespace ServerService
 
             await _server.Start();
         }
-       async void LoadUsers()
+        async void LoadUsers()
         {
-            if (File.Exists("users.json"))
+            if (File.Exists(Path.Combine(exePath, "users.json")))
             {
-                userDB = JsonConvert.DeserializeObject<ObservableCollection<UserStruct>>(File.ReadAllText("users.json"));
+                userDB = JsonConvert.DeserializeObject<ObservableCollection<UserStruct>>(File.ReadAllText(Path.Combine(exePath, "users.json")));
 
                 File.AppendAllText(Path.Combine(exePath, "log.txt"), $"Loaded {userDB.Count.ToString()} users\n");
             }
@@ -54,7 +54,7 @@ namespace ServerService
         }
         private async void HandlerCommand(SharedRequest packet, Connection connection)
         {
-            
+
             var result = "Error";
             switch (packet.Command)
             {
@@ -80,12 +80,12 @@ namespace ServerService
                         break;
                     }
                 case "backup":
-                    {                      
-                        await File.AppendAllTextAsync(Path.Combine(exePath,"log.txt"), "->Get files for backup\n");
+                    {
+                        await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), "->Get files for backup\n");
 
                         var files = FilesInfo.FromBin(packet.Data);
                         foreach (var file in files.Data)
-                            await File.WriteAllBytesAsync(Path.Combine(exePath,$@"BackupFiles\{Path.GetFileName(file.NameFile)}"), file.Bin);
+                            await File.WriteAllBytesAsync(Path.Combine(exePath, $@"BackupFiles\{Path.GetFileName(file.NameFile)}"), file.Bin);
 
                         result = "OK";
                         break;
