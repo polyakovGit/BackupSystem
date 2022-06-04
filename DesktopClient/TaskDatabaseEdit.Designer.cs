@@ -37,6 +37,8 @@
             this.buttonConnect = new System.Windows.Forms.Button();
             this.labelConnectionStatus = new System.Windows.Forms.Label();
             this.buttonDisconnect = new System.Windows.Forms.Button();
+            this.comboBoxDatabasesForBackup = new System.Windows.Forms.ComboBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -123,11 +125,30 @@
             this.buttonDisconnect.UseVisualStyleBackColor = true;
             this.buttonDisconnect.Click += new System.EventHandler(this.buttonDisconnect_Click);
             // 
+            // comboBoxDatabasesForBackup
+            // 
+            this.comboBoxDatabasesForBackup.FormattingEnabled = true;
+            this.comboBoxDatabasesForBackup.Location = new System.Drawing.Point(143, 217);
+            this.comboBoxDatabasesForBackup.Name = "comboBoxDatabasesForBackup";
+            this.comboBoxDatabasesForBackup.Size = new System.Drawing.Size(121, 23);
+            this.comboBoxDatabasesForBackup.TabIndex = 9;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(18, 220);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(78, 15);
+            this.label4.TabIndex = 10;
+            this.label4.Text = "Базы данных";
+            // 
             // TaskDatabaseEdit
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(450, 381);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.comboBoxDatabasesForBackup);
             this.Controls.Add(this.buttonDisconnect);
             this.Controls.Add(this.labelConnectionStatus);
             this.Controls.Add(this.buttonConnect);
@@ -156,5 +177,7 @@
         private Button buttonConnect;
         private Label labelConnectionStatus;
         private Button buttonDisconnect;
+        private ComboBox comboBoxDatabasesForBackup;
+        private Label label4;
     }
 }

@@ -8,14 +8,14 @@ using Microsoft.SqlServer.Management.Common;
 
 namespace DesktopClient
 {
-    public class Database
+    public class MyDatabase
     {
-        private static Database instance;
-        private Database() { }
-        public static Database getInstance()
+        private static MyDatabase instance;
+        private MyDatabase() { }
+        public static MyDatabase getInstance()
         {
             if (instance == null)
-                instance = new Database();
+                instance = new MyDatabase();
             return instance;
         }
         public ServerConnection srvConn;

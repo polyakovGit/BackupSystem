@@ -17,7 +17,7 @@ namespace DesktopClient
 {
     public partial class TaskDatabaseEdit : Form
     {
-        Database dtb = Database.getInstance();
+        MyDatabase dtb = MyDatabase.getInstance();
         public TaskDatabaseEdit()
         {
             InitializeComponent();
@@ -41,8 +41,15 @@ namespace DesktopClient
             }
             dtb.connectionStatus = true;
             labelConnectionStatus.Text = "Соединение установлено";
+            addAllDatabasesToLists();
         }
 
+        void addAllDatabasesToLists()
+        {
+            comboBoxDatabasesForBackup.Items.Clear();
+            foreach (Database item in dtb.srv.Databases)
+                comboBoxDatabasesForBackup.Items.Add(item.Name);
+        }
         private void Settings_Load(object sender, EventArgs e)
         {
             if(!dtb.connectionStatus)

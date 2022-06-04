@@ -36,7 +36,7 @@ namespace ServerService
 
             await _server.Start();
         }
-        void LoadUsers()
+       async void LoadUsers()
         {
             if (File.Exists("users.json"))
             {
@@ -48,7 +48,7 @@ namespace ServerService
             {
                 UserStruct userStruct = new UserStruct() { Username = "root", Password = new Random().Next(99999, 999999).ToString() };
                 userDB.Add(userStruct);
-                File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"No find user! Creating main user: {userStruct.Username}:{userStruct.Password}\n");
+                File.AppendAllText(Path.Combine(exePath, "log.txt"), $"No find user! Creating main user: {userStruct.Username}:{userStruct.Password}\n");
                 File.AppendAllText(Path.Combine(exePath, "users.json"), JsonConvert.SerializeObject(userDB));
             }
         }
