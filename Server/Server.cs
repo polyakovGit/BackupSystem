@@ -4,6 +4,9 @@ using System.Collections.ObjectModel;
 using System.Text;
 using TTST;
 using Newtonsoft.Json;
+using RIS.Reflection.Mapping;
+using RIS.Unions.Types;
+using ServerService;
 
 namespace ClientService;
 
@@ -13,6 +16,8 @@ public class Server
     private const string TASKS_FILENAME = "Tasks.json";
     private ServerConnectionContainer _server;
     private TasksInfo _tasks;
+    private readonly MethodMap<Server> _commandMap;
+
     public static ObservableCollection<UserStruct> userDB { get; set; } = new ObservableCollection<UserStruct>();
 
     public Server()
@@ -31,6 +36,15 @@ public class Server
                 Data = _tasks.ToArray()
             });
         };
+
+        _commandMap = new MethodMap<Server>(
+            this,
+            new[]
+            {
+                typeof(SharedRequest),
+                typeof(Connection)
+            },
+            typeof(Task<CommandResult>));
     }
 
     void LoadUsers()
@@ -58,67 +72,25 @@ public class Server
     private async void HandlerCommand(SharedRequest packet, Connection connection)
     {
         Console.WriteLine(packet.Command);
-        var result = "Error";
-        switch (packet.Command)
+
+        CommandResult result = new Error();
+
+        if (_commandMap.Mappings.ContainsKey(packet.Command))
         {
-            case "tasks":
-                {
-                    Console.WriteLine("-> Tasks updated");
-                    _tasks = TasksInfo.FromArray(packet.Data);
-                    _tasks.SaveToFile(TASKS_FILENAME);
-                    //TODO: send to other and locks
-                    var request = new SharedRequest()
-                    {
-                        Command = "tasks",
-                        Data = _tasks.ToArray()
-                    };
-                    foreach (TcpConnection tcpConnection in _server.TCP_Connections)
-                    {
-                        if (tcpConnection != connection)
-                        {
-                            await tcpConnection.SendAsync<SharedResponse>(request);
-                        }
-                    }
-                    result = "OK";
-                    break;
-                }
-            case "backup":
-                {
-                    Console.WriteLine("-> Get files for backup");
-
-                    var files = FilesInfo.FromBin(packet.Data);
-                    foreach (var file in files.Data)
-                        await File.WriteAllBytesAsync($@"BackupFiles\{Path.GetFileName(file.NameFile)}", file.Bin);
-
-                    result = "OK";
-                    break;
-                }
-
-            case "Login":
-                {
-                    string[] logData = Encoding.UTF8.GetString(packet.Data).Split(new string[] { " &*&*& " }, StringSplitOptions.None);
-
-                    string username = logData[0];
-                    string password = logData[1];
-
-                    lock (userDB)
-                    {
-                        var user = userDB.FirstOrDefault(x => x.Username == username && x.Password == password);
-
-                        if (user != null)
-                            SendLoginState(true, connection);
-                        else
-                            SendLoginState(false, connection);
-                    }
-
-                    break;
-                }
-            default:
-                Console.WriteLine($"-> Command not found! ({packet.Command})");
-                break;
+            result = await _commandMap.Invoke<Task<CommandResult>>(
+                packet.Command,
+                packet, connection);
+        }
+        else
+        {
+            Console.WriteLine($"-> Command not found! ({packet.Command})");
         }
 
-        connection.Send(new SharedResponse(result, packet));
+        connection.Send(new SharedResponse(
+            result.Match(
+                _ => "OK",
+                _ => "Error"),
+            packet));
     }
 
     void SendLoginState(bool logged, Connection connection)
@@ -132,4 +104,62 @@ public class Server
     }
 
     protected internal void Disconnect() => _server.Stop();
+
+
+
+    [MappedMethod("tasks")]
+    public async Task<CommandResult> TasksCommand(SharedRequest packet, Connection connection)
+    {
+        Console.WriteLine("-> Tasks updated");
+        _tasks = TasksInfo.FromArray(packet.Data);
+        _tasks.SaveToFile(TASKS_FILENAME);
+        //TODO: send to other and locks
+        var request = new SharedRequest()
+        {
+            Command = "tasks",
+            Data = _tasks.ToArray()
+        };
+        foreach (TcpConnection tcpConnection in _server.TCP_Connections)
+        {
+            if (tcpConnection != connection)
+            {
+                await tcpConnection.SendAsync<SharedResponse>(request);
+            }
+        }
+
+        return new Success();
+    }
+
+    [MappedMethod("backup")]
+    public async Task<CommandResult> BackupCommand(SharedRequest packet, Connection connection)
+    {
+        Console.WriteLine("-> Get files for backup");
+
+        var files = FilesInfo.FromBin(packet.Data);
+        foreach (var file in files.Data)
+            await File.WriteAllBytesAsync($@"BackupFiles\{Path.GetFileName(file.NameFile)}", file.Bin);
+
+        return new Success();
+    }
+
+    [MappedMethod("Login")]
+    public Task<CommandResult> LoginCommand(SharedRequest packet, Connection connection)
+    {
+        string[] logData = Encoding.UTF8.GetString(packet.Data).Split(new string[] { " &*&*& " }, StringSplitOptions.None);
+
+        string username = logData[0];
+        string password = logData[1];
+
+        lock (userDB)
+        {
+            var user = userDB.FirstOrDefault(x => x.Username == username && x.Password == password);
+
+            if (user != null)
+                SendLoginState(true, connection);
+            else
+                SendLoginState(false, connection);
+        }
+
+        return Task.FromResult<CommandResult>(new Success());
+    }
 }

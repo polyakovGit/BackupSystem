@@ -8,6 +8,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="RIS" Version="3.17.1" />
+      <PackageReference Include="RIS.Reflection" Version="4.2.0" />
+      <PackageReference Include="RIS.Unions.Generator" Version="1.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\SharedData\SharedData.csproj" />
     </ItemGroup>
 

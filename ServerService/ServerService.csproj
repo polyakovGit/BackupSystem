@@ -10,6 +10,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
+    <PackageReference Include="RIS" Version="3.17.1" />
+    <PackageReference Include="RIS.Reflection" Version="4.2.0" />
+    <PackageReference Include="RIS.Unions.Generator" Version="1.0.0" />
     <ProjectReference Include="..\SharedData\SharedData.csproj" />
     <PackageReference Include="Network" Version="6.2.5.23" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
