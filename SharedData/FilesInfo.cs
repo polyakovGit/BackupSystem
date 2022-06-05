@@ -22,7 +22,7 @@ namespace SharedData
 
         public List<FileStruct> Data { get; private set; }
 
-        public void Add(int Id, string nameFile, byte[] bin) => Data.Add(new FileStruct() { Id = Id, NameFile = nameFile, Bin = bin });
+        public void Add(int id, string nameFile, byte[] bin) => Data.Add(new FileStruct() { Id = id, NameFile = nameFile, Bin = bin });
 
         public byte[] ToArray()
         {

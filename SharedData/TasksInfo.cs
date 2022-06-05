@@ -11,7 +11,7 @@ namespace SharedData
     {
         public TasksInfo() { Data = new Dictionary<int, BackupTask>(); }
         private TasksInfo(Dictionary<int, BackupTask> tasksList) { Data = tasksList; }
-        public Dictionary<int,BackupTask> Data { get; private set; }
+        public Dictionary<int, BackupTask> Data { get; private set; }
         public byte[] ToArray()
         {
             using (var ms = new MemoryStream())
@@ -35,7 +35,7 @@ namespace SharedData
         public void SaveToFile(string filename)
         {
             File.WriteAllText(filename, JsonConvert.SerializeObject(this,
-                new JsonSerializerSettings() { TypeNameHandling=TypeNameHandling.Auto}));
+                new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto }));
         }
 
         public static TasksInfo LoadFromFile(string filename)
@@ -43,7 +43,7 @@ namespace SharedData
             if (File.Exists(filename))
             {
                 TasksInfo taskInfo = JsonConvert.DeserializeObject<TasksInfo>(File.ReadAllText(filename),
-                    new JsonSerializerSettings() { TypeNameHandling=TypeNameHandling.Auto});
+                    new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
                 if (taskInfo != null)
                 {
                     return taskInfo;
