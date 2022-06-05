@@ -7,11 +7,13 @@ namespace SharedData
     {
         New = 0,
         Working,
-        Error_NoFile
+        Error_NoFile,
+        Error_DbConnect,
+        Restored
     }
 
     [Serializable]
-    public class BackupTask
+    public abstract class BackupTask
     {
         public int Id = -1;
         public DateTime LastBackupTime = DateTime.MinValue;
@@ -37,6 +39,8 @@ namespace SharedData
                 TaskStatus.New => "Новая",
                 TaskStatus.Working => "Выполняется",
                 TaskStatus.Error_NoFile => "Файл не найден",
+                TaskStatus.Error_DbConnect => "Ошибка подключения",
+                TaskStatus.Restored => "Восстановлено",
                 _ => "-"
             };
         }

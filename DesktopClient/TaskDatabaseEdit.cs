@@ -24,7 +24,7 @@ namespace DesktopClient
 
             try
             {
-                string connString = $@"SERVER={textBoxServerName.Text};UID={textBoxNameUser.Text};PWD={textBoxPass.Text};Trusted_Connection=True";
+                string connString = $"Data Source = {textBoxServerName.Text}; User ID = {textBoxNameUser.Text}; Password = {textBoxPass.Text}";
                 using (SqlConnection connection = new SqlConnection(connString))
                 {
                     connection.Open();

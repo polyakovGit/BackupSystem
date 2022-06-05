@@ -148,4 +148,13 @@ public partial class Main : Form
         Globals.SendTasks();
         UpdateTable(Globals.Tasks);
     }
+
+    private void buttonRestore_Click(object sender, EventArgs e)
+    {
+        if (listView1.SelectedItems.Count == 1)
+        {
+            BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
+            Globals.SendRestore(task.Id);
+        }
+    }
 }

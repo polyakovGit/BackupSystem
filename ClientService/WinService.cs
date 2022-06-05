@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading;
@@ -55,6 +57,7 @@ public class WinService : ServiceBase
         {
             _client = result.Item1;
             _client.RegisterPacketHandler<SharedRequest>(RecvHandler, this);
+            _client.TIMEOUT = 60000;
         }
     }
 
@@ -67,6 +70,26 @@ public class WinService : ServiceBase
                 {
                     _tasks = TasksInfo.FromArray(packet.Data);
                     result = "OK";
+                    break;
+                }
+            case "restore":
+                {
+                    var files = FilesInfo.FromBin(packet.Data);
+                    foreach (var file in files.Data)
+                    {
+                        if (!_tasks.Data.ContainsKey(file.Id))
+                            continue;
+                        var task = _tasks.Data[file.Id];
+                        if (task is FileBackupTask)
+                        {
+                            await File.WriteAllBytesAsync(file.NameFile, file.Bin);
+                            result = "OK";
+                        }
+                        else
+                        {
+                            //TODO:
+                        }
+                    }
                     break;
                 }
             default:
@@ -114,9 +137,45 @@ public class WinService : ServiceBase
                     }
                     else //DbBackupTask
                     {
+                        DbBackupTask dbTask = task as DbBackupTask;
+                        try
+                        {
+                            string fileName = $"{dbTask.DbName}.bak";
+                            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
 
+                            string connString = $"Data Source = {dbTask.Server}; User ID = {dbTask.Login}; Password = {dbTask.Password}";
+                            using (SqlConnection connection = new SqlConnection(connString))
+                            {
+                                await connection.OpenAsync();
+                                var formatMediaName = $"DatabaseToolkitBackup_{dbTask.DbName}";
+                                var formatName = $"Full Backup of {dbTask.DbName}";
+                                string query = @"BACKUP DATABASE @databaseName TO DISK = @localDatabasePath WITH FORMAT, MEDIANAME = @formatMediaName, NAME = @formatName";
+                                var sqlCommand = new SqlCommand(query, connection);
+                                sqlCommand.Parameters.AddWithValue("@databaseName", dbTask.DbName);
+                                sqlCommand.Parameters.AddWithValue("@localDatabasePath", fullPath);
+                                sqlCommand.Parameters.AddWithValue("@formatMediaName", formatMediaName);
+                                sqlCommand.Parameters.AddWithValue("@formatName", formatName);
+                                await sqlCommand.ExecuteNonQueryAsync();
+                            }
+
+                            filesForBackup.Add(dbTask.Id, fullPath, await File.ReadAllBytesAsync(fullPath));
+                            DbBackupTask updatedTask = dbTask;
+                            updatedTask.Status = SharedData.TaskStatus.Working;
+                            updatedTask.UpdateNextBackupTime();
+                            updatedTask.LastBackupTime = DateTime.Now;
+                            updatedTasks.Add(updatedTask);
+                        }
+                        catch (Exception ex)
+                        {
+                            File.AppendAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message);
+                            DbBackupTask updatedTask = dbTask;
+                            updatedTask.Status = SharedData.TaskStatus.Error_DbConnect;
+                            updatedTask.UpdateNextBackupTime();
+                            updatedTasks.Add(updatedTask);
+                        }
                     }
                 }
+
 
                 if (filesForBackup.Data.Count > 0)
                 {
@@ -134,7 +193,6 @@ public class WinService : ServiceBase
                     {
                         _tasks.Data[task.Id] = task;
                     }
-
                     //send tasks list
                     await _client.SendAsync<SharedResponse>(new SharedRequest()
                     {
@@ -142,6 +200,7 @@ public class WinService : ServiceBase
                         Data = _tasks.ToArray()
                     });
                 }
+
             }
 
             await Task.Delay(1000);

@@ -35,6 +35,7 @@ public static class Globals
         {
             connected = true;
             _connection.RegisterStaticPacketHandler<SharedRequest>(RecvHandler);
+            _connection.TIMEOUT = 60000;
             return true;
         }
 
@@ -108,6 +109,18 @@ public static class Globals
         {
             Command = "tasks",
             Data = Tasks.ToArray()
+        });
+    }
+
+    public static async void SendRestore(int id)
+    {
+        if (_connection == null)
+            return;
+
+        await _connection.SendAsync<SharedResponse>(new SharedRequest()
+        {
+            Command = "restore",
+            Data = BitConverter.GetBytes(id)
         });
     }
 }

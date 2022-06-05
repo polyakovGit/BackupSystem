@@ -117,6 +117,49 @@ public class Server
 
                     break;
                 }
+            case "restore":
+                {
+                    int id = BitConverter.ToInt32(packet.Data, 0);
+                    if (_tasks.Data.ContainsKey(id))
+                    {
+                        var task = _tasks.Data[id];
+                        string filename = "";
+                        if (task is FileBackupTask)
+                        {
+                            filename = (task as FileBackupTask).FileName;
+                        }
+                        else if (task is DbBackupTask)
+                        {
+                            filename = (task as DbBackupTask).DbName + ".bak";
+                        }
+                        else
+                        {
+                            break;
+                        }
+
+                        var fullPath = Path.Combine(BACKUP_FOLDER, id.ToString(), Path.GetFileName(filename));
+                        if (File.Exists(fullPath))
+                        {
+                            Console.WriteLine($"->Restore task {id}\n");
+                            var restoreFile = new FilesInfo();
+                            restoreFile.Add(id, filename, await File.ReadAllBytesAsync(fullPath));
+                            foreach (TcpConnection tcpConnection in _server.TCP_Connections)
+                            {
+                                if (tcpConnection != connection)
+                                {
+                                    await tcpConnection.SendAsync<SharedResponse>(new SharedRequest()
+                                    {
+                                        Command = "restore",
+                                        Data = restoreFile.ToArray()
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    result = "OK";
+                    break;
+                }
             default:
                 Console.WriteLine($"-> Command not found! ({packet.Command})");
                 break;
