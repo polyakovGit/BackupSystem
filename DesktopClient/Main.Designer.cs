@@ -33,13 +33,13 @@
             this.buttonEdit = new System.Windows.Forms.Button();
             this.buttonDelete = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
+            this.columnHeaderId = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderType = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderServer = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderSchedule = new System.Windows.Forms.ColumnHeader();
             this.buttonAddDb = new System.Windows.Forms.Button();
             this.buttonRestore = new System.Windows.Forms.Button();
-            this.columnHeaderId = new System.Windows.Forms.ColumnHeader();
             this.SuspendLayout();
             // 
             // buttonAddFile
@@ -96,6 +96,10 @@
             this.listView1.View = System.Windows.Forms.View.Details;
             this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
             // 
+            // columnHeaderId
+            // 
+            this.columnHeaderId.Text = "№";
+            // 
             // columnHeaderType
             // 
             this.columnHeaderType.Text = "Тип";
@@ -124,6 +128,7 @@
             this.buttonAddDb.TabIndex = 2;
             this.buttonAddDb.Text = "Резервировать БД";
             this.buttonAddDb.UseVisualStyleBackColor = true;
+            this.buttonAddDb.Click += new System.EventHandler(this.buttonAddDb_Click);
             // 
             // buttonRestore
             // 
@@ -134,10 +139,6 @@
             this.buttonRestore.TabIndex = 5;
             this.buttonRestore.Text = "Восстановить";
             this.buttonRestore.UseVisualStyleBackColor = true;
-            // 
-            // columnHeaderId
-            // 
-            this.columnHeaderId.Text = "№";
             // 
             // Main
             // 

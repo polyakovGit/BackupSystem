@@ -1,67 +1,73 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
+using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SharedData;
-using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlServer.Management.Common;
-
 
 
 namespace DesktopClient
 {
     public partial class TaskDatabaseEdit : Form
     {
-        MyDatabase dtb = MyDatabase.getInstance();
         public TaskDatabaseEdit()
         {
             InitializeComponent();
+            comboBoxSchedule.SelectedIndex = 0;
         }
 
         private void buttonConnect_Click(object sender, EventArgs e)
         {
+            comboBoxDatabases.Items.Clear();
+
             try
             {
-                string server = comboBoxNameServer.Text;
-                dtb.serverName = server;
-                string nameUser = textBoxNameUser.Text;
-                string pass = textBoxPass.Text;
-                dtb.srvConn = new ServerConnection(server, nameUser, pass);
-                dtb.srv = new Server(dtb.srvConn);
+                string connString = $@"SERVER={textBoxServerName.Text};UID={textBoxNameUser.Text};PWD={textBoxPass.Text};Trusted_Connection=True";
+                using (SqlConnection connection = new SqlConnection(connString))
+                {
+                    connection.Open();
+                    DataTable dtDatabases = connection.GetSchema("databases");
+
+                    foreach (DataRow item in dtDatabases.Rows)
+                        comboBoxDatabases.Items.Add(item["database_name"]);
+
+                    labelConnectionStatus.Text = "Соединение установлено";
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                dtb.connectionStatus = false;
                 labelConnectionStatus.Text = "Соединение не установлено";
             }
-            dtb.connectionStatus = true;
-            labelConnectionStatus.Text = "Соединение установлено";
-            addAllDatabasesToLists();
+
+            if (comboBoxDatabases.Items.Count > 0)
+                comboBoxDatabases.SelectedIndex = 0;
         }
 
-        void addAllDatabasesToLists()
+        public DbBackupTask GetTask()
         {
-            comboBoxDatabasesForBackup.Items.Clear();
-            foreach (Database item in dtb.srv.Databases)
-                comboBoxDatabasesForBackup.Items.Add(item.Name);
-        }
-        private void Settings_Load(object sender, EventArgs e)
-        {
-            if (!dtb.connectionStatus)
-                labelConnectionStatus.Text = "Соединение не установлено";
-            else labelConnectionStatus.Text = "Соединение установлено";
+            var task = new DbBackupTask()
+            {
+                Server = textBoxServerName.Text,
+                Login = textBoxNameUser.Text,
+                Password = textBoxPass.Text,
+                DbName = comboBoxDatabases.Text,
+                NextBackupTime = dateTimePicker1.Value,
+                TypeTimeBackup = comboBoxSchedule.SelectedIndex
+            };
+
+            return task;
         }
 
-        private void buttonDisconnect_Click(object sender, EventArgs e)
+        public void SetTask(DbBackupTask task)
         {
-            dtb.srv.ConnectionContext.Disconnect();
-            dtb.connectionStatus = false;
-            labelConnectionStatus.Text = "Соединение не установлено";
+            textBoxServerName.Text = task.Server;
+            textBoxNameUser.Text = task.Login;
+            textBoxPass.Text = task.Password;
+            comboBoxDatabases.Text = task.DbName;
+            dateTimePicker1.Value = task.NextBackupTime;
+            comboBoxSchedule.SelectedIndex = task.TypeTimeBackup;
         }
     }
 }

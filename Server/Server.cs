@@ -2,7 +2,6 @@
 using SharedData;
 using System.Collections.ObjectModel;
 using System.Text;
-using TTST;
 using Newtonsoft.Json;
 
 namespace ClientService;
@@ -80,7 +79,7 @@ public class Server
                             await tcpConnection.SendAsync<SharedResponse>(request);
                         }
                     }
-                    CheckBackups();
+                    Task.Run(() => CheckBackups());
                     result = "OK";
                     break;
                 }
@@ -91,7 +90,7 @@ public class Server
                     var files = FilesInfo.FromBin(packet.Data);
                     foreach (var file in files.Data)
                     {
-                        Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\");
+                        await Task.Run(() => Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\"));
                         await File.WriteAllBytesAsync($@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}", file.Bin);
                     }
 

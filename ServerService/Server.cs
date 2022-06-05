@@ -76,7 +76,7 @@ namespace ServerService
                                 await tcpConnection.SendAsync<SharedResponse>(request);
                             }
                         }
-                        CheckBackups();
+                        Task.Run(() => CheckBackups());
                         result = "OK";
                         break;
                     }
@@ -87,7 +87,7 @@ namespace ServerService
                         var files = FilesInfo.FromBin(packet.Data);
                         foreach (var file in files.Data)
                         {
-                            Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\");
+                            await Task.Run(() => Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\"));
                             await File.WriteAllBytesAsync(Path.Combine(exePath, $@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}"), file.Bin);
                         }
 

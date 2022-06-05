@@ -60,28 +60,16 @@ public partial class Main : Form
         Globals.SendTasks();
         UpdateTable(Globals.Tasks);
     }
-    private void buttonAddFile_Click_1(object sender, EventArgs e)
-    {
-        var taskEditDlg = new TaskFileEdit();
-        if (taskEditDlg.ShowDialog() != DialogResult.OK)
-            return;
-        var newTask = taskEditDlg.GetTask();
-        if (string.IsNullOrEmpty(newTask.FileName))
-            return;
-        newTask.Id = Globals.Tasks.GetNextId();
-        Globals.Tasks.Data[newTask.Id] = newTask;
-        Globals.SendTasks();
-        UpdateTable(Globals.Tasks);
-    }
+
     private void buttonEdit_Click(object sender, EventArgs e)
     {
-        var taskEditDlg = new TaskFileEdit();
         if (listView1.SelectedItems.Count <= 0)
             return;
 
         BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
         if (task is FileBackupTask)
         {
+            var taskEditDlg = new TaskFileEdit();
             taskEditDlg.SetTask(task as FileBackupTask);
             if (taskEditDlg.ShowDialog() != DialogResult.OK)
                 return;
@@ -95,7 +83,21 @@ public partial class Main : Form
         }
         else if (task is DbBackupTask)
         {
-            //TODO:
+            var dbTask = task as DbBackupTask;
+            var taskEditDlg = new TaskDatabaseEdit();
+            taskEditDlg.SetTask(dbTask);
+            if (taskEditDlg.ShowDialog() != DialogResult.OK)
+                return;
+            var newTask = taskEditDlg.GetTask();
+            dbTask.NextBackupTime = newTask.NextBackupTime;
+            dbTask.TypeTimeBackup = newTask.TypeTimeBackup;
+            dbTask.Server = newTask.Server;
+            dbTask.Login = newTask.Login;
+            dbTask.Password = newTask.Password;
+            dbTask.DbName = newTask.DbName;
+            Globals.Tasks.Data[dbTask.Id] = dbTask;
+            Globals.SendTasks();
+            UpdateTable(Globals.Tasks);
         }
         else
         {
@@ -135,4 +137,15 @@ public partial class Main : Form
         s.ShowDialog();
     }
 
+    private void buttonAddDb_Click(object sender, EventArgs e)
+    {
+        var taskEditDlg = new TaskDatabaseEdit();
+        if (taskEditDlg.ShowDialog() != DialogResult.OK)
+            return;
+        var newTask = taskEditDlg.GetTask();
+        newTask.Id = Globals.Tasks.GetNextId();
+        Globals.Tasks.Data[newTask.Id] = newTask;
+        Globals.SendTasks();
+        UpdateTable(Globals.Tasks);
+    }
 }

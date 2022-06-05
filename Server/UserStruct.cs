@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TTST
+namespace ClientService
 {
     public class UserStruct
     {
