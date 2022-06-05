@@ -36,7 +36,7 @@ namespace DesktopClient
             }
             catch
             {
-                dtb.connectionStatus=false;
+                dtb.connectionStatus = false;
                 labelConnectionStatus.Text = "Соединение не установлено";
             }
             dtb.connectionStatus = true;
@@ -52,7 +52,7 @@ namespace DesktopClient
         }
         private void Settings_Load(object sender, EventArgs e)
         {
-            if(!dtb.connectionStatus)
+            if (!dtb.connectionStatus)
                 labelConnectionStatus.Text = "Соединение не установлено";
             else labelConnectionStatus.Text = "Соединение установлено";
         }

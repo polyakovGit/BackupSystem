@@ -13,6 +13,7 @@ namespace SharedData
     [Serializable]
     public class BackupTask
     {
+        public int Id = -1;
         public string FileName = "";
         public DateTime LastBackupTime =  DateTime.MinValue;
         public DateTime NextBackupTime = DateTime.MaxValue;
@@ -51,5 +52,18 @@ namespace SharedData
                 _ => "-"
             };
         }
+    }
+    [Serializable]
+    public class FileBackupTask:BackupTask
+    {
+        public string FileName = "";
+    }
+    [Serializable]
+    public class DbBackupTask : BackupTask
+    {
+        public string Server = "";
+        public string Login = "";
+        public string Password = "";
+        public string DbName = "";
     }
 }

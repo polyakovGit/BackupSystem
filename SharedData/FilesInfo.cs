@@ -15,13 +15,14 @@ namespace SharedData
         [Serializable]
         public struct FileStruct
         {
+            public int Id;
             public string NameFile;
             public byte[] Bin;
         }
 
         public List<FileStruct> Data { get; private set; }
 
-        public void Add(string nameFile, byte[] bin) => Data.Add(new FileStruct() { NameFile = nameFile, Bin = bin });
+        public void Add(int Id, string nameFile, byte[] bin) => Data.Add(new FileStruct() { Id = Id, NameFile = nameFile, Bin = bin });
 
         public byte[] ToArray()
         {

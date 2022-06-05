@@ -39,10 +39,10 @@ public class WinService : ServiceBase
 
         await Connect();
         _homePath = args[0];
-        _isWork = true; 
+        _isWork = true;
         await Task.Run(Handler);
     }
-    
+
     protected override void OnStop()
     {
         base.OnStop();
@@ -87,27 +87,35 @@ public class WinService : ServiceBase
             {
                 await Connect();
             }
-            else 
+            else
             {
                 var filesForBackup = new FilesInfo();
                 var updatedTasks = new List<BackupTask>();
                 foreach (var task in _tasks.Data.Values.Where(task => task.NextBackupTime <= DateTime.Now))
                 {
-                    if (File.Exists(task.FileName))
+                    if (task is FileBackupTask)
                     {
-                        filesForBackup.Add(task.FileName, await File.ReadAllBytesAsync(task.FileName));
-                        BackupTask updatedTask = task;
-                        updatedTask.Status = SharedData.TaskStatus.Working;
-                        updatedTask.UpdateNextBackupTime();
-                        updatedTask.LastBackupTime = DateTime.Now;
-                        updatedTasks.Add(updatedTask);
+                        FileBackupTask fileTask = task as FileBackupTask;
+                        if (File.Exists(fileTask.FileName))
+                        {
+                            filesForBackup.Add(fileTask.Id, fileTask.FileName, await File.ReadAllBytesAsync(fileTask.FileName));
+                            FileBackupTask updatedTask = fileTask;
+                            updatedTask.Status = SharedData.TaskStatus.Working;
+                            updatedTask.UpdateNextBackupTime();
+                            updatedTask.LastBackupTime = DateTime.Now;
+                            updatedTasks.Add(updatedTask);
+                        }
+                        else
+                        {
+                            FileBackupTask updatedTask = fileTask;
+                            updatedTask.Status = SharedData.TaskStatus.Error_NoFile;
+                            updatedTask.UpdateNextBackupTime();
+                            updatedTasks.Add(updatedTask);
+                        }
                     }
-                    else
+                    else //DbBackupTask
                     {
-                        BackupTask updatedTask = task;
-                        updatedTask.Status = SharedData.TaskStatus.Error_NoFile;
-                        updatedTask.UpdateNextBackupTime();
-                        updatedTasks.Add(updatedTask);
+
                     }
                 }
 
@@ -125,7 +133,7 @@ public class WinService : ServiceBase
                 {
                     foreach (var task in updatedTasks)
                     {
-                        _tasks.Data[task.FileName] = task;
+                        _tasks.Data[task.Id] = task;
                     }
 
                     //send tasks list

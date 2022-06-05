@@ -13,6 +13,7 @@ namespace ServerService
 
         private ServerConnectionContainer _server;
         private const string TASKS_FILENAME = "Tasks.json";
+        private const string BACKUP_FOLDER = "BackupFiles";
         private TasksInfo _tasks;
 
         string exePath = AppDomain.CurrentDomain.BaseDirectory;
@@ -36,7 +37,7 @@ namespace ServerService
 
             await _server.Start();
         }
-        async void LoadUsers()
+        void LoadUsers()
         {
             if (File.Exists(Path.Combine(exePath, "users.json")))
             {
@@ -76,17 +77,18 @@ namespace ServerService
                                 await tcpConnection.SendAsync<SharedResponse>(request);
                             }
                         }
+                        CheckBackups();
                         result = "OK";
                         break;
                     }
                 case "backup":
                     {
                         await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), "->Get files for backup\n");
-
                         var files = FilesInfo.FromBin(packet.Data);
-                        foreach (var file in files.Data)
-                            await File.WriteAllBytesAsync(Path.Combine(exePath, $@"BackupFiles\{Path.GetFileName(file.NameFile)}"), file.Bin);
-
+                        foreach (var file in files.Data) {
+                            Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\");
+                            await File.WriteAllBytesAsync(Path.Combine(exePath, $@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}"), file.Bin);
+                        }
                         result = "OK";
                         break;
                     }
@@ -115,6 +117,17 @@ namespace ServerService
             }
 
             connection.Send(new SharedResponse(result, packet));
+        }
+        void CheckBackups()
+        {
+            foreach(var dir in Directory.EnumerateDirectories(BACKUP_FOLDER))
+            {
+                int numDir = 0;
+                if(!Int32.TryParse(dir,out numDir)||!_tasks.Data.ContainsKey(numDir))
+                {
+                    Directory.Delete($@"{BACKUP_FOLDER}/{dir}", true);
+                }
+            }
         }
         void SendLoginState(bool logged, Connection connection)
         {

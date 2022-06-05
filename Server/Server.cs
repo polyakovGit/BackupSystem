@@ -11,6 +11,7 @@ public class Server
 {
     private const int SERVER_PORT = 1708;
     private const string TASKS_FILENAME = "Tasks.json";
+    private const string BACKUP_FOLDER = "BackupFiles";
     private ServerConnectionContainer _server;
     private TasksInfo _tasks;
     public static ObservableCollection<UserStruct> userDB { get; set; } = new ObservableCollection<UserStruct>();
@@ -66,7 +67,7 @@ public class Server
                     Console.WriteLine("-> Tasks updated");
                     _tasks = TasksInfo.FromArray(packet.Data);
                     _tasks.SaveToFile(TASKS_FILENAME);
-                    //TODO: send to other and locks
+
                     var request = new SharedRequest()
                     {
                         Command = "tasks",
@@ -79,6 +80,7 @@ public class Server
                             await tcpConnection.SendAsync<SharedResponse>(request);
                         }
                     }
+                    CheckBackups();
                     result = "OK";
                     break;
                 }
@@ -88,7 +90,10 @@ public class Server
 
                     var files = FilesInfo.FromBin(packet.Data);
                     foreach (var file in files.Data)
-                        await File.WriteAllBytesAsync($@"BackupFiles\{Path.GetFileName(file.NameFile)}", file.Bin);
+                    {
+                        Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\");
+                        await File.WriteAllBytesAsync($@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}", file.Bin);
+                    }
 
                     result = "OK";
                     break;
@@ -119,6 +124,19 @@ public class Server
         }
 
         connection.Send(new SharedResponse(result, packet));
+    }
+
+    void CheckBackups()
+    {
+        var dirInfo = new DirectoryInfo(BACKUP_FOLDER);
+        foreach (var dir in dirInfo.GetDirectories())
+        {
+            int numDir = 0;
+            if (!Int32.TryParse(dir.Name, out numDir) || !_tasks.Data.ContainsKey(numDir))
+            {
+                Directory.Delete($@"{dir}", true);
+            }
+        }
     }
 
     void SendLoginState(bool logged, Connection connection)

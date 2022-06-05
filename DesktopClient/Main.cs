@@ -26,9 +26,18 @@ public partial class Main : Form
         {
             ListViewItem lvi = new ListViewItem();
             lvi.Tag = task;
-            lvi.Text = "Резервирование";
+            lvi.Text = task.Id.ToString();
             lvi.Name = "Task";
-            ListViewItem.ListViewSubItem subItem = new ListViewItem.ListViewSubItem(lvi, Globals.SERVER_IP);
+            string taskType;
+            if (task is FileBackupTask)
+                taskType = "Файл";
+            else if (task is DbBackupTask)
+                taskType = "База данных";
+            else
+                taskType = "Неизвестно";
+            ListViewItem.ListViewSubItem subItem = new ListViewItem.ListViewSubItem(lvi, taskType);
+            lvi.SubItems.Add(subItem);
+            subItem = new ListViewItem.ListViewSubItem(lvi, Globals.SERVER_IP);
             lvi.SubItems.Add(subItem);
             subItem = new ListViewItem.ListViewSubItem(lvi, task.GetStatusString());
             lvi.SubItems.Add(subItem);
@@ -38,7 +47,7 @@ public partial class Main : Form
         }
     }
 
-    private void buttonAdd_Click(object sender, EventArgs e)
+    private void buttonAddFile_Click(object sender, EventArgs e)
     {
         var taskEditDlg = new TaskFileEdit();
         if (taskEditDlg.ShowDialog() != DialogResult.OK)
@@ -46,11 +55,24 @@ public partial class Main : Form
         var newTask = taskEditDlg.GetTask();
         if (string.IsNullOrEmpty(newTask.FileName))
             return;
-        Globals.Tasks.Data[newTask.FileName] = newTask;
+        newTask.Id = Globals.Tasks.GetNextId();
+        Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();
         UpdateTable(Globals.Tasks);
     }
-
+    private void buttonAddFile_Click_1(object sender, EventArgs e)
+    {
+        var taskEditDlg = new TaskFileEdit();
+        if (taskEditDlg.ShowDialog() != DialogResult.OK)
+            return;
+        var newTask = taskEditDlg.GetTask();
+        if (string.IsNullOrEmpty(newTask.FileName))
+            return;
+        newTask.Id = Globals.Tasks.GetNextId();
+        Globals.Tasks.Data[newTask.Id] = newTask;
+        Globals.SendTasks();
+        UpdateTable(Globals.Tasks);
+    }
     private void buttonEdit_Click(object sender, EventArgs e)
     {
         var taskEditDlg = new TaskFileEdit();
@@ -58,26 +80,34 @@ public partial class Main : Form
             return;
 
         BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
-        taskEditDlg.SetTask(task);
-        if (taskEditDlg.ShowDialog() != DialogResult.OK)
-            return;
-        var newTask = taskEditDlg.GetTask();
-        if (string.IsNullOrEmpty(newTask.FileName))
-            Globals.Tasks.Data.Remove(task.FileName);
-        if (newTask.FileName != task.FileName)
-            Globals.Tasks.Data.Remove(task.FileName);
-        task.NextBackupTime = newTask.NextBackupTime;
-        task.TypeTimeBackup = newTask.TypeTimeBackup;
-        Globals.Tasks.Data[task.FileName] = task;
-        Globals.SendTasks();
-        UpdateTable(Globals.Tasks);
+        if (task is FileBackupTask)
+        {
+            taskEditDlg.SetTask(task as FileBackupTask);
+            if (taskEditDlg.ShowDialog() != DialogResult.OK)
+                return;
+            var newTask = taskEditDlg.GetTask();
+            task.NextBackupTime = newTask.NextBackupTime;
+            task.TypeTimeBackup = newTask.TypeTimeBackup;
+            (task as FileBackupTask).FileName = newTask.FileName;
+            Globals.Tasks.Data[task.Id] = task;
+            Globals.SendTasks();
+            UpdateTable(Globals.Tasks);
+        }
+        else if (task is DbBackupTask)
+        {
+            //TODO:
+        }
+        else
+        {
+            //error task
+        }
     }
     private void buttonDelete_Click(object sender, EventArgs e)
     {
         if (listView1.SelectedItems.Count == 1)
         {
             BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
-            Globals.Tasks.Data.Remove(task.FileName);
+            Globals.Tasks.Data.Remove(task.Id);
             Globals.SendTasks();
             UpdateTable(Globals.Tasks);
         }
@@ -89,11 +119,13 @@ public partial class Main : Form
         {
             buttonEdit.Enabled = true;
             buttonDelete.Enabled = true;
+            buttonRestore.Enabled = true;
         }
         else
         {
             buttonEdit.Enabled = false;
             buttonDelete.Enabled = false;
+            buttonRestore.Enabled = false;
         }
     }
 
@@ -102,4 +134,5 @@ public partial class Main : Form
         Login s = new Login();
         s.ShowDialog();
     }
+
 }

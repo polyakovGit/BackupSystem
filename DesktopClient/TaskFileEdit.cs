@@ -18,6 +18,7 @@ namespace DesktopClient
         public TaskFileEdit()
         {
             InitializeComponent();
+            comboBox1.SelectedIndex = 0;
         }
 
         private void buttonSelect_Click(object sender, EventArgs e)
@@ -25,8 +26,8 @@ namespace DesktopClient
             var dialog = new OpenFileDialog();
             if (!string.IsNullOrEmpty(textBoxFilename.Text))
             {
-                dialog.InitialDirectory = !string.IsNullOrEmpty(textBoxFilename.Text) 
-                    ? Path.GetDirectoryName(textBoxFilename.Text) 
+                dialog.InitialDirectory = !string.IsNullOrEmpty(textBoxFilename.Text)
+                    ? Path.GetDirectoryName(textBoxFilename.Text)
                     : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             }
             if (dialog.ShowDialog() != DialogResult.OK)
@@ -35,9 +36,9 @@ namespace DesktopClient
             textBoxFilename.Text = dialog.FileName;
         }
 
-        public BackupTask GetTask()
+        public FileBackupTask GetTask()
         {
-            var task = new BackupTask()
+            var task = new FileBackupTask()
             {
                 FileName = textBoxFilename.Text,
                 NextBackupTime = dateTimePicker1.Value,
@@ -47,7 +48,7 @@ namespace DesktopClient
             return task;
         }
 
-        public void SetTask(BackupTask task)
+        public void SetTask(FileBackupTask task)
         {
             textBoxFilename.Text = task.FileName;
             dateTimePicker1.Value = task.NextBackupTime;
