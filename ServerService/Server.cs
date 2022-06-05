@@ -3,7 +3,6 @@ using SharedData;
 using System.IO;
 using System.Collections.ObjectModel;
 using System.Text;
-using TTST;
 using Newtonsoft.Json;
 
 namespace ServerService
@@ -37,7 +36,7 @@ namespace ServerService
 
             await _server.Start();
         }
-        void LoadUsers()
+        async void LoadUsers()
         {
             if (File.Exists(Path.Combine(exePath, "users.json")))
             {
@@ -84,11 +83,14 @@ namespace ServerService
                 case "backup":
                     {
                         await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), "->Get files for backup\n");
+
                         var files = FilesInfo.FromBin(packet.Data);
-                        foreach (var file in files.Data) {
+                        foreach (var file in files.Data)
+                        {
                             Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\");
                             await File.WriteAllBytesAsync(Path.Combine(exePath, $@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}"), file.Bin);
                         }
+
                         result = "OK";
                         break;
                     }
@@ -118,17 +120,19 @@ namespace ServerService
 
             connection.Send(new SharedResponse(result, packet));
         }
+
         void CheckBackups()
         {
-            foreach(var dir in Directory.EnumerateDirectories(BACKUP_FOLDER))
+            foreach (var dir in Directory.EnumerateDirectories(BACKUP_FOLDER))
             {
                 int numDir = 0;
-                if(!Int32.TryParse(dir,out numDir)||!_tasks.Data.ContainsKey(numDir))
+                if (!Int32.TryParse(dir, out numDir) || !_tasks.Data.ContainsKey(numDir))
                 {
                     Directory.Delete($@"{BACKUP_FOLDER}/{dir}", true);
                 }
             }
         }
+
         void SendLoginState(bool logged, Connection connection)
         {
             File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"Login state...{logged.ToString()}\n");
