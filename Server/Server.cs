@@ -24,6 +24,7 @@ public class Server
         _server.ConnectionEstablished += (conn, type) =>
         {
             Console.WriteLine($"-> New connection");
+            conn.TIMEOUT = 60000;
             conn.RegisterPacketHandler<SharedRequest>(HandlerCommand, this);
             conn.SendAsync<SharedResponse>(new SharedRequest()
             {

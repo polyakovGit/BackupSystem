@@ -73,7 +73,7 @@ public static class Globals
                         {
                             Login.Invoke(new Action(() =>
                             {
-                                MessageBox.Show("Имя пользователя или пароль неверен", "Ошибка входа", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show("Login of password invalid!", "Login Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 Login.Clear();
                             }));
                         }

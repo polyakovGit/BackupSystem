@@ -40,10 +40,10 @@ public class WinService : ServiceBase
 
         await Connect();
         _homePath = args[0];
-        _isWork = true;
+        _isWork = true; 
         await Task.Run(Handler);
     }
-
+    
     protected override void OnStop()
     {
         base.OnStop();
@@ -85,9 +85,32 @@ public class WinService : ServiceBase
                             await File.WriteAllBytesAsync(file.NameFile, file.Bin);
                             result = "OK";
                         }
-                        else
+                        else if (task is (DbBackupTask))
                         {
-                            //TODO:
+                            var dbTask = task as DbBackupTask;
+                            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.NameFile);
+                            await File.WriteAllBytesAsync(fullPath, file.Bin);
+
+                            try
+                            {
+                                string connString = $"Data Source = {dbTask.Server}; User ID = {dbTask.Login}; Password = {dbTask.Password}";
+                                using (SqlConnection conn = new SqlConnection(connString))
+                                {
+                                    await conn.OpenAsync();
+                                    string query = @"RESTORE DATABASE @databaseName 
+                                        FROM DISK = @localDatabasePath 
+                                        WITH REPLACE";
+                                    var sqlCommand = new SqlCommand(query, conn);
+                                    sqlCommand.Parameters.AddWithValue("@databaseName", dbTask.DbName);
+                                    sqlCommand.Parameters.AddWithValue("@localDatabasePath", fullPath);
+                                    await sqlCommand.ExecuteNonQueryAsync();
+                                }
+                                result = "OK";
+                            }
+                            catch { }   
+                            
+                            FileInfo fi = new FileInfo(fullPath);
+                            await fi.DeleteAsync();
                         }
                     }
                     break;
@@ -109,7 +132,7 @@ public class WinService : ServiceBase
             {
                 await Connect();
             }
-            else
+            else 
             {
                 var filesForBackup = new FilesInfo();
                 var updatedTasks = new List<BackupTask>();
@@ -138,10 +161,11 @@ public class WinService : ServiceBase
                     else //DbBackupTask
                     {
                         DbBackupTask dbTask = task as DbBackupTask;
+                        string fileName = $"{dbTask.DbName}.bak";
+                        string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
                         try
                         {
-                            string fileName = $"{dbTask.DbName}.bak";
-                            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+                            
 
                             string connString = $"Data Source = {dbTask.Server}; User ID = {dbTask.Login}; Password = {dbTask.Password}";
                             using (SqlConnection connection = new SqlConnection(connString))
@@ -173,6 +197,9 @@ public class WinService : ServiceBase
                             updatedTask.UpdateNextBackupTime();
                             updatedTasks.Add(updatedTask);
                         }
+
+                        FileInfo fi = new FileInfo(fullPath);
+                        await fi.DeleteAsync();
                     }
                 }
 
@@ -186,7 +213,7 @@ public class WinService : ServiceBase
                         Data = filesForBackup.ToArray()
                     });
                 }
-
+                    
                 if (updatedTasks.Count > 0)
                 {
                     foreach (var task in updatedTasks)
@@ -202,8 +229,17 @@ public class WinService : ServiceBase
                 }
 
             }
+
             await Task.Delay(1000);
         }
+    }
+}
+
+public static class FileExtensions
+{
+    public static Task DeleteAsync(this FileInfo fi)
+    {
+        return Task.Factory.StartNew(() => fi.Delete());
     }
 }
 #pragma warning restore CA1416

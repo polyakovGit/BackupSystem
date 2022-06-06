@@ -16,7 +16,7 @@ namespace SharedData
     public abstract class BackupTask
     {
         public int Id = -1;
-        public DateTime LastBackupTime = DateTime.MinValue;
+        public DateTime LastBackupTime =  DateTime.MinValue;
         public DateTime NextBackupTime = DateTime.MaxValue;
         public int TypeTimeBackup = 0;
         public TaskStatus Status = TaskStatus.New;

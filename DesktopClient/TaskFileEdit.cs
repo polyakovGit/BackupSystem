@@ -26,8 +26,8 @@ namespace DesktopClient
             var dialog = new OpenFileDialog();
             if (!string.IsNullOrEmpty(textBoxFilename.Text))
             {
-                dialog.InitialDirectory = !string.IsNullOrEmpty(textBoxFilename.Text)
-                    ? Path.GetDirectoryName(textBoxFilename.Text)
+                dialog.InitialDirectory = !string.IsNullOrEmpty(textBoxFilename.Text) 
+                    ? Path.GetDirectoryName(textBoxFilename.Text) 
                     : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             }
             if (dialog.ShowDialog() != DialogResult.OK)

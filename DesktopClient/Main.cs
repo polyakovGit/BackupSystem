@@ -22,7 +22,7 @@ public partial class Main : Form
     public void UpdateTable(TasksInfo tasks)
     {
         listView1.Items.Clear();
-        foreach (var task in tasks.Data.Values)
+        foreach (var task in tasks.Data.Values.OrderBy(t => t.Id))
         {
             ListViewItem lvi = new ListViewItem();
             lvi.Tag = task;

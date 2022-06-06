@@ -26,6 +26,7 @@ namespace ServerService
             _server.ConnectionEstablished += (conn, type) =>
             {
                 File.AppendAllText(Path.Combine(exePath, "log.txt"), $"-> New connection\n");
+                conn.TIMEOUT = 60000;
                 conn.RegisterPacketHandler<SharedRequest>(HandlerCommand, this);
                 conn.SendAsync<SharedResponse>(new SharedRequest()
                 {
@@ -89,7 +90,7 @@ namespace ServerService
                         {
                             await Task.Run(() => Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\"));
                             await File.WriteAllBytesAsync(Path.Combine(exePath, $@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}"), file.Bin);
-                        }
+                        }                            
 
                         result = "OK";
                         break;

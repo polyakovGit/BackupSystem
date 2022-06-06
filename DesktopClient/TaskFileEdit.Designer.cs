@@ -115,8 +115,10 @@
             // 
             // TaskFileEdit
             // 
+            this.AcceptButton = this.buttonOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.buttonCancel;
             this.ClientSize = new System.Drawing.Size(516, 99);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonOk);
