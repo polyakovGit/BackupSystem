@@ -92,7 +92,7 @@ public class Server
                     foreach (var file in files.Data)
                     {
                         await Task.Run(() => Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\"));
-                        await File.WriteAllBytesAsync($@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}", file.Bin);
+                        File.WriteAllBytesAsync($@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}", file.Bin);
                     }
 
                     result = "OK";

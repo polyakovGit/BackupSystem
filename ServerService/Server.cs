@@ -89,7 +89,7 @@ namespace ServerService
                         foreach (var file in files.Data)
                         {
                             await Task.Run(() => Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\"));
-                            await File.WriteAllBytesAsync(Path.Combine(exePath, $@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}"), file.Bin);
+                            File.WriteAllBytesAsync(Path.Combine(exePath, $@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}"), file.Bin);
                         }                            
 
                         result = "OK";
