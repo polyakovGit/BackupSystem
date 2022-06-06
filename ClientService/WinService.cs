@@ -202,7 +202,6 @@ public class WinService : ServiceBase
                 }
 
             }
-
             await Task.Delay(1000);
         }
     }

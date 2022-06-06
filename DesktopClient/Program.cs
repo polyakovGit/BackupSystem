@@ -22,14 +22,11 @@ internal static class Program
             MessageBox.Show("Запустите с правами администратора");
             return;
         }
-        
+
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        //Login LoginWindow = new Login();
-        //if (LoginWindow.ShowDialog() == DialogResult.OK)
-        //{
-            Globals.MainWindow = new Main();
-            Application.Run(Globals.MainWindow);
-        //}
+        Globals.MainWindow = new Main();
+        Application.Run(Globals.MainWindow);
+
     }
 }
