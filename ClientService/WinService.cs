@@ -33,11 +33,11 @@ public class WinService : ServiceBase
         _config = await Config.LoadFromFileAsync(configFilename);
 
         await Connect();
-
-        _isWork = true;
+        
+        _isWork = true; 
         await Task.Run(Handler);
     }
-
+    
     protected override void OnStop()
     {
         base.OnStop();
@@ -108,8 +108,8 @@ public class WinService : ServiceBase
                             catch (Exception ex)
                             {
                                 await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
-                            }
-
+                            }   
+                            
                             FileInfo fi = new FileInfo(fullPath);
                             await fi.DeleteAsync();
                         }
@@ -118,7 +118,7 @@ public class WinService : ServiceBase
                         {
                             task.AddAction(TaskAction.Restore);
                             _tasks.Data[task.Id] = task;
-
+                            
                         }
                     }
                     break;
@@ -148,7 +148,7 @@ public class WinService : ServiceBase
             {
                 await Connect();
             }
-            else
+            else 
             {
                 try
                 {
@@ -156,8 +156,8 @@ public class WinService : ServiceBase
                     var filesForBackup = new FilesInfo();
                     var updatedTasks = new List<BackupTask>();
                     var filesForDelete = new List<string>();
-                    foreach (var task in _tasks.Data.Values.Where(task =>
-                        task.NextBackupTime <= DateTime.Now
+                    foreach (var task in _tasks.Data.Values.Where(task => 
+                        task.NextBackupTime <= DateTime.Now 
                         && task.Status != SharedData.TaskStatus.Disabled))
                     {
                         if (task == null)

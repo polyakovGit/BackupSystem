@@ -207,7 +207,7 @@ public partial class Main : Form
         long newQuota = 0;
         if (long.TryParse(quotaDlg.textBoxMax.Text, out newQuota))
         {
-            Globals.Tasks.MaxQuota = newQuota;
+            Globals.Tasks.MaxQuota = newQuota * 1024;
             Globals.SendTasks();
             UpdateTable(Globals.Tasks);
         }
