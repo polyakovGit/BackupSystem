@@ -12,7 +12,6 @@ public class WinService : ServiceBase
 {
     private const string SERVICE_NAME = "ClientService";
     private Config _config = new Config();
-    private string _homePath;
     private bool _isWork = false;
     private TasksInfo _tasks;
     private TcpConnection? _client;
@@ -24,26 +23,21 @@ public class WinService : ServiceBase
         this.CanPauseAndContinue = false;
         this.AutoLog = false;
 
-        _homePath = string.Empty;
         _tasks = new TasksInfo();
         _client = null;
     }
 
     protected override async void OnStart(string[] args)
     {
-        if (args.Length == 0)
-            Stop();
-
-        _homePath = args[0];
         var configFilename = Path.Combine(Environment.CurrentDirectory, "Config.json");
         _config = await Config.LoadFromFileAsync(configFilename);
 
         await Connect();
-        
-        _isWork = true; 
+
+        _isWork = true;
         await Task.Run(Handler);
     }
-    
+
     protected override void OnStop()
     {
         base.OnStop();
@@ -114,8 +108,8 @@ public class WinService : ServiceBase
                             catch (Exception ex)
                             {
                                 await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
-                            }   
-                            
+                            }
+
                             FileInfo fi = new FileInfo(fullPath);
                             await fi.DeleteAsync();
                         }
@@ -124,7 +118,7 @@ public class WinService : ServiceBase
                         {
                             task.AddAction(TaskAction.Restore);
                             _tasks.Data[task.Id] = task;
-                            
+
                         }
                     }
                     break;
@@ -154,7 +148,7 @@ public class WinService : ServiceBase
             {
                 await Connect();
             }
-            else 
+            else
             {
                 try
                 {
@@ -162,8 +156,8 @@ public class WinService : ServiceBase
                     var filesForBackup = new FilesInfo();
                     var updatedTasks = new List<BackupTask>();
                     var filesForDelete = new List<string>();
-                    foreach (var task in _tasks.Data.Values.Where(task => 
-                        task.NextBackupTime <= DateTime.Now 
+                    foreach (var task in _tasks.Data.Values.Where(task =>
+                        task.NextBackupTime <= DateTime.Now
                         && task.Status != SharedData.TaskStatus.Disabled))
                     {
                         if (task == null)
