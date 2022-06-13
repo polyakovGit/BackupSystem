@@ -12,7 +12,7 @@ namespace DesktopClient;
 public static class Globals
 {
     public static Config Config = new Config();
-    private static string _configFilename = Path.Combine(Environment.CurrentDirectory, "ClientService", "Config.json");
+    private static string _configFilename = Path.Combine(Environment.CurrentDirectory, "Config.json");
     public static TasksInfo Tasks;
     private static TcpConnection? _connection;
     public static Main? MainWindow;
@@ -22,9 +22,9 @@ public static class Globals
 
     public static bool Init()
     {
-        Process.Start(@"C:\WINDOWS\system32\sc.exe",
-        $"create test start=auto binPath=\"{Environment.CurrentDirectory}\\ClientService\\ClientService.exe\"");
-        Process.Start(@"C:\Windows\system32\sc.exe", $"start test \"{Environment.CurrentDirectory}\"");
+        //Process.Start(@"C:\WINDOWS\system32\sc.exe",
+        //$"create test start=auto binPath=\"{Environment.CurrentDirectory}\\ClientService\\ClientService.exe\"");
+        //Process.Start(@"C:\Windows\system32\sc.exe", $"start test \"{Environment.CurrentDirectory}\"");
 
         return Connect();
     }
