@@ -15,21 +15,31 @@ namespace DesktopClient
         public Login()
         {
             InitializeComponent();
+            textBoxServerAddress.Text = Globals.Config.ServerIp;
+            textBoxServerPort.Text = Globals.Config.ServerPort.ToString();
+            textBoxLogin.Text = Globals.Config.Login;
+            textBoxPass.Text = Globals.Config.Password;
         }
 
         private void buttonConnection_Click(object sender, EventArgs e)
         {
-            Globals.SERVER_IP = textBoxServerAddress.Text;
-            Globals.SERVER_PORT = int.Parse(textBoxServerPort.Text);
+            Globals.Config.ServerIp = textBoxServerAddress.Text;
+            int port = 0;
+            int.TryParse(textBoxServerPort.Text, out port);
+            Globals.Config.ServerPort = port;
+            Globals.Config.Login = textBoxLogin.Text;
+            Globals.Config.Password = textBoxPass.Text;
+            Globals.SaveConfig();
+
             if (Globals.Init())
             {
-                Globals.SendLogin(textBoxLogin.Text, textBoxPass.Text);
+                Globals.SendLogin(Globals.Config.Login, Globals.Config.Password);
                 //this.DialogResult = DialogResult.OK;
                 //this.Close();
             }
             else if (Globals.connected)
             {
-                Globals.SendLogin(textBoxLogin.Text, textBoxPass.Text);
+                Globals.SendLogin(Globals.Config.Login, Globals.Config.Password);
             }
             else
             {

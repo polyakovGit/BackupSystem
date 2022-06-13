@@ -25,11 +25,9 @@ internal static class Program
         
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        //Login LoginWindow = new Login();
-        //if (LoginWindow.ShowDialog() == DialogResult.OK)
-        //{
-            Globals.MainWindow = new Main();
-            Application.Run(Globals.MainWindow);
-        //}
+        
+        Globals.LoadConfig();
+        Globals.MainWindow = new Main();
+        Application.Run(Globals.MainWindow);
     }
 }

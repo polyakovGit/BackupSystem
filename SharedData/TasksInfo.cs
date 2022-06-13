@@ -9,15 +9,16 @@ namespace SharedData
     [Serializable]
     public class TasksInfo
     {
-        public TasksInfo() { Data = new Dictionary<int, BackupTask>(); }
-        private TasksInfo(Dictionary<int, BackupTask> tasksList) { Data = tasksList; }
+        public TasksInfo() { Data = new Dictionary<int, BackupTask>(); UsedQuota = 0; MaxQuota = 10000000; }
         public Dictionary<int,BackupTask> Data { get; private set; }
+        public long UsedQuota { get; set; }
+        public long MaxQuota { get; set; }
         public byte[] ToArray()
         {
             using (var ms = new MemoryStream())
             {
                 var binFormatter = new BinaryFormatter();
-                binFormatter.Serialize(ms, Data);
+                binFormatter.Serialize(ms, this);
                 return ms.ToArray();
             }
         }
@@ -28,13 +29,19 @@ namespace SharedData
                 var binFormatter = new BinaryFormatter();
                 ms.Write(array, 0, array.Length);
                 ms.Position = 0;
-                return new TasksInfo(binFormatter.Deserialize(ms) as Dictionary<int, BackupTask>);
+                return binFormatter.Deserialize(ms) as TasksInfo;
             }
         }
 
         public void SaveToFile(string filename)
         {
             File.WriteAllText(filename, JsonConvert.SerializeObject(this, 
+                new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto }));
+        }
+
+        public async Task SaveToFileAsync(string filename)
+        {
+           await File.WriteAllTextAsync(filename, JsonConvert.SerializeObject(this,
                 new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto }));
         }
 

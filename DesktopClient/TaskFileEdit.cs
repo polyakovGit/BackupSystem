@@ -38,11 +38,16 @@ namespace DesktopClient
 
         public FileBackupTask GetTask()
         {
+            int maxCount = 1;
+            int.TryParse(textBoxCount.Text, out maxCount);
+            if (maxCount <= 0)
+                maxCount = 1;
             var task = new FileBackupTask()
             {
                 FileName = textBoxFilename.Text,
                 NextBackupTime = dateTimePicker1.Value,
-                TypeTimeBackup = comboBox1.SelectedIndex
+                TypeTimeBackup = comboBox1.SelectedIndex,
+                MaxCount = maxCount
             };
 
             return task;
@@ -53,6 +58,7 @@ namespace DesktopClient
             textBoxFilename.Text = task.FileName;
             dateTimePicker1.Value = task.NextBackupTime;
             comboBox1.SelectedIndex = task.TypeTimeBackup;
+            textBoxCount.Text = task.MaxCount.ToString();
         }
     }
 }

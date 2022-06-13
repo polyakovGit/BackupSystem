@@ -37,7 +37,7 @@ public partial class Main : Form
                 taskType = "Неизвестно";
             ListViewItem.ListViewSubItem subItem = new ListViewItem.ListViewSubItem(lvi, taskType);
             lvi.SubItems.Add(subItem);
-            subItem = new ListViewItem.ListViewSubItem(lvi, Globals.SERVER_IP);
+            subItem = new ListViewItem.ListViewSubItem(lvi, Globals.Config.ServerIp);
             lvi.SubItems.Add(subItem);
             subItem = new ListViewItem.ListViewSubItem(lvi, task.GetStatusString());
             lvi.SubItems.Add(subItem);
@@ -45,6 +45,10 @@ public partial class Main : Form
             lvi.SubItems.Add(subItem);
             listView1.Items.Add(lvi);
         }
+
+        progressBarQuota.Value = tasks.UsedQuota < tasks.MaxQuota 
+            ? (int)(tasks.UsedQuota * 100 / tasks.MaxQuota)
+            : 100;
     }
 
     private void buttonAddFile_Click(object sender, EventArgs e)
@@ -56,6 +60,7 @@ public partial class Main : Form
         if (string.IsNullOrEmpty(newTask.FileName))
             return;
         newTask.Id = Globals.Tasks.GetNextId();
+        newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();
         UpdateTable(Globals.Tasks);
@@ -67,6 +72,8 @@ public partial class Main : Form
             return;
 
         BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
+        if (task == null)
+            return;
         if (task is FileBackupTask)
         {
             var taskEditDlg = new TaskFileEdit();
@@ -76,6 +83,7 @@ public partial class Main : Form
             var newTask = taskEditDlg.GetTask();
             task.NextBackupTime = newTask.NextBackupTime;
             task.TypeTimeBackup = newTask.TypeTimeBackup;
+            task.MaxCount = newTask.MaxCount;
             (task as FileBackupTask).FileName = newTask.FileName;
             Globals.Tasks.Data[task.Id] = task;
             Globals.SendTasks();
@@ -91,6 +99,7 @@ public partial class Main : Form
             var newTask = taskEditDlg.GetTask();
             dbTask.NextBackupTime = newTask.NextBackupTime;
             dbTask.TypeTimeBackup = newTask.TypeTimeBackup;
+            dbTask.MaxCount = newTask.MaxCount;
             dbTask.Server = newTask.Server;
             dbTask.Login = newTask.Login;
             dbTask.Password = newTask.Password;
@@ -99,20 +108,18 @@ public partial class Main : Form
             Globals.SendTasks();
             UpdateTable(Globals.Tasks);
         }
-        else
-        {
-            //error task
-        }
     }
     private void buttonDelete_Click(object sender, EventArgs e)
     {
-        if (listView1.SelectedItems.Count == 1)
-        {
-            BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
-            Globals.Tasks.Data.Remove(task.Id);
-            Globals.SendTasks();
-            UpdateTable(Globals.Tasks);
-        }
+        if (listView1.SelectedItems.Count != 1)
+            return;
+        BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
+        if (task == null)
+            return;
+        Globals.Tasks.Data.Remove(task.Id);
+        Globals.SendTasks();
+        UpdateTable(Globals.Tasks);
+        listView1_SelectedIndexChanged(this, EventArgs.Empty);
     }
 
     private void listView1_SelectedIndexChanged(object sender, EventArgs e)
@@ -122,12 +129,21 @@ public partial class Main : Form
             buttonEdit.Enabled = true;
             buttonDelete.Enabled = true;
             buttonRestore.Enabled = true;
+            buttonDisable.Enabled = true;
+            BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
+            if (task != null)
+            {
+                buttonDisable.Text = task.Status == SharedData.TaskStatus.Disabled ? "Включить" : "Отключить";
+            }
+            buttonHistory.Enabled = true;
         }
         else
         {
             buttonEdit.Enabled = false;
             buttonDelete.Enabled = false;
             buttonRestore.Enabled = false;
+            buttonDisable.Enabled = false;
+            buttonHistory.Enabled = false;
         }
     }
 
@@ -144,6 +160,7 @@ public partial class Main : Form
             return;
         var newTask = taskEditDlg.GetTask();
         newTask.Id = Globals.Tasks.GetNextId();
+        newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();
         UpdateTable(Globals.Tasks);
@@ -154,7 +171,58 @@ public partial class Main : Form
         if (listView1.SelectedItems.Count == 1)
         {
             BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
+            if (task == null)
+                return;
             Globals.SendRestore(task.Id);
         }
+    }
+
+    private void buttonDisable_Click(object sender, EventArgs e)
+    {
+        if (listView1.SelectedItems.Count != 1)
+            return;
+        BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
+        if (task == null)
+            return;
+        if (task.Status == SharedData.TaskStatus.Disabled)
+        {
+            task.Status = task.BackupTimes.Count == 0 ? SharedData.TaskStatus.New : SharedData.TaskStatus.Working;
+        }
+        else
+        {
+            task.Status = SharedData.TaskStatus.Disabled;
+        }
+        Globals.Tasks.Data[task.Id] = task;
+        Globals.SendTasks();
+        UpdateTable(Globals.Tasks);
+        listView1_SelectedIndexChanged(this, EventArgs.Empty);
+    }
+
+    private void buttonQuota_Click(object sender, EventArgs e)
+    {
+        var quotaDlg = new Quota();
+        if (quotaDlg.ShowDialog() != DialogResult.OK)
+            return;
+
+        long newQuota = 0;
+        if (long.TryParse(quotaDlg.textBoxMax.Text, out newQuota))
+        {
+            Globals.Tasks.MaxQuota = newQuota;
+            Globals.SendTasks();
+            UpdateTable(Globals.Tasks);
+        }
+    }
+
+    private void buttonHistory_Click(object sender, EventArgs e)
+    {
+        if (listView1.SelectedItems.Count <= 0)
+            return;
+        BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
+        if (task == null)
+            return;
+
+        var historyDlg = new TaskHistory();
+        historyDlg.UpdateHistoty(task);
+        historyDlg.ShowDialog();
     }
 }

@@ -1,16 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using Network;
-using SharedData;
 using System.Text;
+using ClientConfig;
+using SharedData;
+
 
 
 namespace DesktopClient;
 
 public static class Globals
 {
-    public static string SERVER_IP;// = "127.0.0.1";
-    public static int SERVER_PORT;// = 1708;
+    public static Config Config = new Config();
+    private static string _configFilename = Path.Combine(Environment.CurrentDirectory, "ClientService", "Config.json");
     public static TasksInfo Tasks;
     private static TcpConnection? _connection;
     public static Main? MainWindow;
@@ -30,12 +32,12 @@ public static class Globals
     public static bool Connect()
     {
         ConnectionResult result = ConnectionResult.TCPConnectionNotAlive;
-        _connection = ConnectionFactory.CreateTcpConnection(SERVER_IP, SERVER_PORT, out result);
+        _connection = ConnectionFactory.CreateTcpConnection(Config.ServerIp, Config.ServerPort, out result);
         if (result == ConnectionResult.Connected)
         {
             connected = true;
             _connection.RegisterStaticPacketHandler<SharedRequest>(RecvHandler);
-            _connection.TIMEOUT = 60000;
+            _connection.TIMEOUT = 600000;
             return true;
         }
 
@@ -122,5 +124,15 @@ public static class Globals
             Command = "restore",
             Data = BitConverter.GetBytes(id)
         });
+    }
+
+    public static void LoadConfig()
+    {
+        Config = Config.LoadFromFile(_configFilename);
+    }
+
+    public static void SaveConfig()
+    {
+        Config.SaveToFile(_configFilename);
     }
 }

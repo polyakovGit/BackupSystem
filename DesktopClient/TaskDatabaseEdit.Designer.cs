@@ -43,6 +43,8 @@
             this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
             this.buttonOk = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
+            this.label6 = new System.Windows.Forms.Label();
+            this.textBoxCount = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // label1
@@ -78,7 +80,7 @@
             this.textBoxNameUser.Name = "textBoxNameUser";
             this.textBoxNameUser.Size = new System.Drawing.Size(121, 23);
             this.textBoxNameUser.TabIndex = 2;
-            this.textBoxNameUser.Text = "BackupRole";
+            this.textBoxNameUser.Text = "vamp";
             // 
             // textBoxPass
             // 
@@ -87,7 +89,7 @@
             this.textBoxPass.PasswordChar = '*';
             this.textBoxPass.Size = new System.Drawing.Size(121, 23);
             this.textBoxPass.TabIndex = 3;
-            this.textBoxPass.Text = "12345";
+            this.textBoxPass.Text = "qwe321";
             // 
             // buttonConnect
             // 
@@ -166,7 +168,7 @@
             // buttonOk
             // 
             this.buttonOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOk.Location = new System.Drawing.Point(229, 214);
+            this.buttonOk.Location = new System.Drawing.Point(231, 238);
             this.buttonOk.Name = "buttonOk";
             this.buttonOk.Size = new System.Drawing.Size(75, 23);
             this.buttonOk.TabIndex = 8;
@@ -176,12 +178,30 @@
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(310, 214);
+            this.buttonCancel.Location = new System.Drawing.Point(312, 238);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 9;
             this.buttonCancel.Text = "Отмена";
             this.buttonCancel.UseVisualStyleBackColor = true;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(12, 208);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(260, 15);
+            this.label6.TabIndex = 13;
+            this.label6.Text = "Максимальное количество резервных копий:";
+            // 
+            // textBoxCount
+            // 
+            this.textBoxCount.Location = new System.Drawing.Point(278, 205);
+            this.textBoxCount.MaxLength = 5;
+            this.textBoxCount.Name = "textBoxCount";
+            this.textBoxCount.Size = new System.Drawing.Size(56, 23);
+            this.textBoxCount.TabIndex = 14;
+            this.textBoxCount.Text = "1";
             // 
             // TaskDatabaseEdit
             // 
@@ -189,7 +209,9 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(397, 249);
+            this.ClientSize = new System.Drawing.Size(397, 273);
+            this.Controls.Add(this.textBoxCount);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonOk);
             this.Controls.Add(this.dateTimePicker1);
@@ -209,7 +231,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "TaskDatabaseEdit";
-            this.Text = "Редактирование задачи резервирования баз данных";
+            this.Text = "Редактирование задания резервирования базы данных";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -232,5 +254,7 @@
         private DateTimePicker dateTimePicker1;
         private Button buttonOk;
         private Button buttonCancel;
+        private Label label6;
+        private TextBox textBoxCount;
     }
 }

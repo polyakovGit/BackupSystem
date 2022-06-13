@@ -18,6 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ClientConfig\ClientConfig.csproj" />
       <ProjectReference Include="..\SharedData\SharedData.csproj" />
     </ItemGroup>
 

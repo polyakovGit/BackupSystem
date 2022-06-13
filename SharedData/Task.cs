@@ -9,17 +9,34 @@ namespace SharedData
         Working,
         Error_NoFile,
         Error_DbConnect,
-        Restored
+        Error_Quota,
+        Disabled
+    }
+
+    public enum TaskAction
+    {
+        Created = 0,
+        Backup,
+        Restore
+    }
+
+    [Serializable]
+    public struct TaskHistory
+    {
+        public DateTime Date;
+        public TaskAction Action;
     }
 
     [Serializable]
     public abstract class BackupTask
     {
-        public int Id = -1;
-        public DateTime LastBackupTime =  DateTime.MinValue;
-        public DateTime NextBackupTime = DateTime.MaxValue;
-        public int TypeTimeBackup = 0;
-        public TaskStatus Status = TaskStatus.New;
+        public int Id = -1; //ID задания
+        public List<DateTime> BackupTimes = new List<DateTime>(); //Список времен текущих резервных копий
+        public DateTime NextBackupTime = DateTime.MaxValue; //Время следующего резервирования
+        public int TypeTimeBackup = 0; //Тип расписания
+        public TaskStatus Status = TaskStatus.New; //Статус
+        public int MaxCount = 1; //Количество хранимых резервных копий
+        public List<TaskHistory> History = new List<TaskHistory>();
 
         public void UpdateNextBackupTime()
         {
@@ -36,11 +53,12 @@ namespace SharedData
         {
             return Status switch
             {
-                TaskStatus.New => "Новая",
+                TaskStatus.New => "Запланировано",
                 TaskStatus.Working => "Выполняется",
                 TaskStatus.Error_NoFile => "Файл не найден",
                 TaskStatus.Error_DbConnect => "Ошибка подключения",
-                TaskStatus.Restored => "Восстановлено",
+                TaskStatus.Error_Quota => "Превышение квоты",
+                TaskStatus.Disabled => "Отключено",
                 _ => "-"
             };
         }
@@ -55,6 +73,8 @@ namespace SharedData
                 _ => "-"
             };
         }
+
+        public void AddAction(TaskAction action) => History.Add(new TaskHistory { Date = DateTime.Now, Action = action });
     }
 
     [Serializable]

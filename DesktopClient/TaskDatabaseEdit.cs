@@ -24,8 +24,11 @@ namespace DesktopClient
 
             try
             {
-                string connString = $"Data Source = {textBoxServerName.Text}; User ID = {textBoxNameUser.Text}; Password = {textBoxPass.Text}";
-                using (SqlConnection connection = new SqlConnection(connString))
+                SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
+                connStringBuilder.DataSource = textBoxServerName.Text;
+                connStringBuilder.UserID = textBoxNameUser.Text;
+                connStringBuilder.Password = textBoxPass.Text;
+                using (SqlConnection connection = new SqlConnection(connStringBuilder.ConnectionString))
                 {
                     connection.Open();
                     DataTable dtDatabases = connection.GetSchema("databases");
@@ -47,6 +50,10 @@ namespace DesktopClient
 
         public DbBackupTask GetTask()
         {
+            int maxCount = 1;
+            int.TryParse(textBoxCount.Text, out maxCount);
+            if (maxCount <= 0)
+                maxCount = 1;
             var task = new DbBackupTask()
             {
                 Server = textBoxServerName.Text,
@@ -54,7 +61,8 @@ namespace DesktopClient
                 Password = textBoxPass.Text,
                 DbName = comboBoxDatabases.Text,
                 NextBackupTime = dateTimePicker1.Value,
-                TypeTimeBackup = comboBoxSchedule.SelectedIndex
+                TypeTimeBackup = comboBoxSchedule.SelectedIndex,
+                MaxCount = maxCount
             };
 
             return task;
@@ -68,6 +76,7 @@ namespace DesktopClient
             comboBoxDatabases.Text = task.DbName;
             dateTimePicker1.Value = task.NextBackupTime;
             comboBoxSchedule.SelectedIndex = task.TypeTimeBackup;
+            textBoxCount.Text = task.MaxCount.ToString();
         }
     }
 }

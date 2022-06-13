@@ -24,7 +24,7 @@ public class Server
         _server.ConnectionEstablished += (conn, type) =>
         {
             Console.WriteLine($"-> New connection");
-            conn.TIMEOUT = 60000;
+            conn.TIMEOUT = 600000;
             conn.RegisterPacketHandler<SharedRequest>(HandlerCommand, this);
             conn.SendAsync<SharedResponse>(new SharedRequest()
             {
@@ -66,7 +66,7 @@ public class Server
                 {
                     Console.WriteLine("-> Tasks updated");
                     _tasks = TasksInfo.FromArray(packet.Data);
-                    _tasks.SaveToFile(TASKS_FILENAME);
+                    await _tasks.SaveToFileAsync(TASKS_FILENAME);
 
                     var request = new SharedRequest()
                     {
@@ -91,8 +91,9 @@ public class Server
                     var files = FilesInfo.FromBin(packet.Data);
                     foreach (var file in files.Data)
                     {
-                        await Task.Run(() => Directory.CreateDirectory($@"{BACKUP_FOLDER}\{file.Id}\"));
-                        File.WriteAllBytesAsync($@"{BACKUP_FOLDER}\{file.Id}\{Path.GetFileName(file.NameFile)}", file.Bin);
+                        var dir = Path.Combine(BACKUP_FOLDER, file.Id.ToString(), file.Date.ToString("yyMMdd_HHmmss"));
+                        await Task.Run(() => Directory.CreateDirectory(dir));
+                        await File.WriteAllBytesAsync(Path.Combine(dir,Path.GetFileName(file.NameFile)), file.Bin);
                     }
 
                     result = "OK";
@@ -124,41 +125,49 @@ public class Server
                     if (_tasks.Data.ContainsKey(id))
                     {
                         var task = _tasks.Data[id];
-                        string filename = "";
-                        if (task is FileBackupTask)
+                        if (task.BackupTimes.Count != 0)
                         {
-                            filename = (task as FileBackupTask).FileName;
-                        }
-                        else if (task is DbBackupTask)
-                        {
-                            filename = (task as DbBackupTask).DbName + ".bak";
-                        }
-                        else
-                        {
-                            break;
-                        }
-
-                        var fullPath = Path.Combine(BACKUP_FOLDER, id.ToString(), Path.GetFileName(filename));
-                        if (File.Exists(fullPath))
-                        {
-                            Console.WriteLine($"->Restore task {id}\n");
-                            var restoreFile = new FilesInfo();
-                            restoreFile.Add(id, filename, await File.ReadAllBytesAsync(fullPath));
-                            foreach (TcpConnection tcpConnection in _server.TCP_Connections)
+                            string filename = "";
+                            if (task is FileBackupTask)
                             {
-                                if (tcpConnection != connection)
+                                filename = (task as FileBackupTask).FileName;
+                            }
+                            else if (task is DbBackupTask)
+                            {
+                                filename = (task as DbBackupTask).DbName + ".bak";
+                            }
+                            else
+                            {
+                                break;
+                            }
+
+                            var fullPath = Path.Combine(BACKUP_FOLDER, 
+                                id.ToString(), 
+                                task.BackupTimes.Max().ToString("yyMMdd_HHmmss"), 
+                                Path.GetFileName(filename));
+                            if (File.Exists(fullPath))
+                            {
+                                Console.WriteLine($"->Restore task {id}\n");
+                                var restoreFile = new FilesInfo();
+                                restoreFile.Add(id, DateTime.MinValue, filename, await File.ReadAllBytesAsync(fullPath));
+                                foreach (TcpConnection tcpConnection in _server.TCP_Connections)
                                 {
-                                    await tcpConnection.SendAsync<SharedResponse>(new SharedRequest()
+                                    if (tcpConnection != connection)
                                     {
-                                        Command = "restore",
-                                        Data = restoreFile.ToArray()
-                                    });
+                                        await tcpConnection.SendAsync<SharedResponse>(new SharedRequest()
+                                        {
+                                            Command = "restore",
+                                            Data = restoreFile.ToArray()
+                                        });
+                                    }
                                 }
+
+                                result = "OK";
                             }
                         }
                     }
 
-                    result = "OK";
+                    
                     break;
                 }
             default:
@@ -171,15 +180,66 @@ public class Server
 
     void CheckBackups()
     {
+        bool tasksChanged = false;
         var dirInfo = new DirectoryInfo(BACKUP_FOLDER);
         foreach (var dir in dirInfo.GetDirectories())
         {
             int numDir = 0;
             if (!Int32.TryParse(dir.Name, out numDir) || !_tasks.Data.ContainsKey(numDir))
             {
-                Directory.Delete($@"{dir}", true);
+                tasksChanged = true;
+                Directory.Delete(dir.FullName, true);
             }
         }
+
+        List<BackupTask> backupTasks = new List<BackupTask>(_tasks.Data.Values);
+        foreach (var task in backupTasks)
+        {
+            if (task.BackupTimes.Count > task.MaxCount)
+            {
+                while (task.BackupTimes.Count > task.MaxCount)
+                {
+                    var olderDateTime = task.BackupTimes.Min();
+                    var dir = Path.Combine(BACKUP_FOLDER, task.Id.ToString(), olderDateTime.ToString("yyMMdd_HHmmss"));
+                    Directory.Delete(dir, true);
+                    task.BackupTimes.Remove(olderDateTime);
+                    tasksChanged = true;
+                }
+
+                _tasks.Data[task.Id] = task;
+            }
+        }
+        if (tasksChanged)
+        {
+            _tasks.UsedQuota = GetFolderSize(dirInfo);
+            _tasks.SaveToFile(TASKS_FILENAME);
+            foreach (TcpConnection tcpConnection in _server.TCP_Connections)
+            {
+                tcpConnection.Send(new SharedRequest()
+                {
+                    Command = "tasks",
+                    Data = _tasks.ToArray()
+                });
+            }
+        }
+    }
+
+    long GetFolderSize(DirectoryInfo di)
+    {
+        long size = 0;
+        // Добавляем размер файлов
+        FileInfo[] files = di.GetFiles();
+        foreach (FileInfo fi in files)
+        {
+            size += fi.Length;
+        }
+        // Добавляем размер подкаталогов
+        DirectoryInfo[] dirs = di.GetDirectories();
+        foreach (DirectoryInfo dir in dirs)
+        {
+            size += GetFolderSize(dir);
+        }
+        return size;
     }
 
     void SendLoginState(bool logged, Connection connection)
