@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using Network;
+﻿using Network;
 using System.Text;
 using ClientConfig;
 using SharedData;
@@ -22,10 +20,6 @@ public static class Globals
 
     public static bool Init()
     {
-        //Process.Start(@"C:\WINDOWS\system32\sc.exe",
-        //$"create test start=auto binPath=\"{Environment.CurrentDirectory}\\ClientService\\ClientService.exe\"");
-        //Process.Start(@"C:\Windows\system32\sc.exe", $"start test \"{Environment.CurrentDirectory}\"");
-
         return Connect();
     }
 
