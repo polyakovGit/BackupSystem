@@ -80,7 +80,7 @@
             this.textBoxNameUser.Name = "textBoxNameUser";
             this.textBoxNameUser.Size = new System.Drawing.Size(121, 23);
             this.textBoxNameUser.TabIndex = 2;
-            this.textBoxNameUser.Text = "vamp";
+            this.textBoxNameUser.Text = "BackupRole";
             // 
             // textBoxPass
             // 
@@ -89,7 +89,7 @@
             this.textBoxPass.PasswordChar = '*';
             this.textBoxPass.Size = new System.Drawing.Size(121, 23);
             this.textBoxPass.TabIndex = 3;
-            this.textBoxPass.Text = "qwe321";
+            this.textBoxPass.Text = "12345";
             // 
             // buttonConnect
             // 
