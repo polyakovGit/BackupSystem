@@ -132,9 +132,9 @@ public class Server
                             {
                                 filename = (task as FileBackupTask).FileName;
                             }
-                            else if (task is DbBackupTask)
+                            else if (task is SQLBackupTask)
                             {
-                                filename = (task as DbBackupTask).DbName + ".bak";
+                                filename = (task as SQLBackupTask).DbName + ".bak";
                             }
                             else
                             {

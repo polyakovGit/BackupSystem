@@ -84,9 +84,9 @@ public class WinService : ServiceBase
                             await File.WriteAllBytesAsync(file.NameFile, file.Bin);
                             result = "OK";
                         }
-                        else if (task is (DbBackupTask))
+                        else if (task is (SQLBackupTask))
                         {
-                            var dbTask = task as DbBackupTask;
+                            var dbTask = task as SQLBackupTask;
                             string fullPath = Path.Combine(Path.GetTempPath(), file.NameFile);
                             await File.WriteAllBytesAsync(fullPath, file.Bin);
 
@@ -119,9 +119,9 @@ public class WinService : ServiceBase
                                 await fi.DeleteAsync();
                             }                            
                         }
-                        else if (task is (PgSqlBackupTask))
+                        else if (task is (PGBackupTask))
                         {
-                            var pgTask = task as PgSqlBackupTask;
+                            var pgTask = task as PGBackupTask;
                             string fullPath = Path.Combine(Path.GetTempPath(), file.NameFile);
                             await File.WriteAllBytesAsync(fullPath, file.Bin);
 
@@ -212,7 +212,7 @@ public class WinService : ServiceBase
         return quotaAddBytes;
     }
 
-    private async Task<long> SqlServerBackup(DbBackupTask dbTask, FilesInfo filesForBackup, 
+    private async Task<long> SqlServerBackup(SQLBackupTask dbTask, FilesInfo filesForBackup, 
         List<BackupTask> updatedTasks, List<string> filesForDelete, long quotaAddBytes)
     {
         string fileName = $"{dbTask.DbName}.bak";
@@ -243,7 +243,7 @@ public class WinService : ServiceBase
                 quotaAddBytes += fi.Length;
                 var backupTime = DateTime.Now;
                 filesForBackup.Add(dbTask.Id, backupTime, fullPath, await File.ReadAllBytesAsync(fullPath));
-                DbBackupTask updatedTask = dbTask;
+                SQLBackupTask updatedTask = dbTask;
                 updatedTask.Status = SharedData.TaskStatus.Working;
                 updatedTask.AddAction(TaskAction.Backup);
                 updatedTask.UpdateNextBackupTime();
@@ -252,7 +252,7 @@ public class WinService : ServiceBase
             }
             else
             {
-                DbBackupTask updatedTask = dbTask;
+                SQLBackupTask updatedTask = dbTask;
                 updatedTask.Status = SharedData.TaskStatus.Error_Quota;
                 updatedTask.UpdateNextBackupTime();
                 updatedTasks.Add(updatedTask);
@@ -261,7 +261,7 @@ public class WinService : ServiceBase
         catch (Exception ex)
         {
             await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
-            DbBackupTask updatedTask = dbTask;
+            SQLBackupTask updatedTask = dbTask;
             updatedTask.Status = SharedData.TaskStatus.Error_DbConnect;
             updatedTask.UpdateNextBackupTime();
             updatedTasks.Add(updatedTask);
@@ -275,7 +275,7 @@ public class WinService : ServiceBase
         File.AppendAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), sender.ToString() + "\n");
     }
 
-    private async Task<long> PgSqlBackup(PgSqlBackupTask pgTask, FilesInfo filesForBackup, 
+    private async Task<long> PgSqlBackup(PGBackupTask pgTask, FilesInfo filesForBackup, 
         List<BackupTask> updatedTasks, List<string> filesForDelete, long quotaAddBytes)
     {
         string fileName = $"{pgTask.DbName}.backup";
@@ -298,7 +298,7 @@ public class WinService : ServiceBase
                 quotaAddBytes += fi.Length;
                 var backupTime = DateTime.Now;
                 filesForBackup.Add(pgTask.Id, backupTime, fullPath, await File.ReadAllBytesAsync(fullPath));
-                PgSqlBackupTask updatedTask = pgTask;
+                PGBackupTask updatedTask = pgTask;
                 updatedTask.Status = SharedData.TaskStatus.Working;
                 updatedTask.AddAction(TaskAction.Backup);
                 updatedTask.UpdateNextBackupTime();
@@ -307,7 +307,7 @@ public class WinService : ServiceBase
             }
             else
             {
-                PgSqlBackupTask updatedTask = pgTask;
+                PGBackupTask updatedTask = pgTask;
                 updatedTask.Status = SharedData.TaskStatus.Error_Quota;
                 updatedTask.UpdateNextBackupTime();
                 updatedTasks.Add(updatedTask);
@@ -316,7 +316,7 @@ public class WinService : ServiceBase
         catch (Exception ex)
         {
             await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
-            PgSqlBackupTask updatedTask = pgTask;
+            PGBackupTask updatedTask = pgTask;
             updatedTask.Status = SharedData.TaskStatus.Error_DbConnect;
             updatedTask.UpdateNextBackupTime();
             updatedTasks.Add(updatedTask);
@@ -355,12 +355,12 @@ public class WinService : ServiceBase
                             quotaAddBytes = await FileBackup(task as FileBackupTask, filesForBackup, updatedTasks, 
                                 filesForDelete, quotaAddBytes);
                         }
-                        else if (task is DbBackupTask)
+                        else if (task is SQLBackupTask)
                         {
-                            quotaAddBytes = await SqlServerBackup(task as DbBackupTask, filesForBackup, updatedTasks,
+                            quotaAddBytes = await SqlServerBackup(task as SQLBackupTask, filesForBackup, updatedTasks,
                                 filesForDelete, quotaAddBytes);
                         }
-                        else if (task is PgSqlBackupTask)
+                        else if (task is PGBackupTask)
                         {
                             quotaAddBytes = await PgSqlBackup(task as PGBackupTask, filesForBackup, updatedTasks,
                                 filesForDelete, quotaAddBytes);

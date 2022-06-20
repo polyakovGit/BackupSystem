@@ -25,9 +25,9 @@ public partial class Main : Form
             string taskType;
             if (task is FileBackupTask)
                 taskType = "Файл";
-            else if (task is DbBackupTask)
+            else if (task is SQLBackupTask)
                 taskType = "SQL Server";
-            else if (task is PgSqlBackupTask)
+            else if (task is PGBackupTask)
                 taskType = "PostgreSQL";
             else
                 taskType = "Неизвестно";
@@ -86,9 +86,9 @@ public partial class Main : Form
             Globals.SendTasks();
             UpdateTable(Globals.Tasks);
         }
-        else if (task is DbBackupTask)
+        else if (task is SQLBackupTask)
         {
-            var dbTask = task as DbBackupTask;
+            var dbTask = task as SQLBackupTask;
             var taskEditDlg = new TaskDatabaseEdit();
             taskEditDlg.SetTask(dbTask);
             if (taskEditDlg.ShowDialog() != DialogResult.OK)
@@ -105,9 +105,9 @@ public partial class Main : Form
             Globals.SendTasks();
             UpdateTable(Globals.Tasks);
         }
-        else if (task is PgSqlBackupTask)
+        else if (task is PGBackupTask)
         {
-            var pgTask = task as PgSqlBackupTask;
+            var pgTask = task as PGBackupTask;
             var taskEditDlg = new TaskPgSqlEdit();
             taskEditDlg.SetTask(pgTask);
             if (taskEditDlg.ShowDialog() != DialogResult.OK)

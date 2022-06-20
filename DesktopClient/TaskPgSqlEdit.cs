@@ -48,7 +48,7 @@ namespace DesktopClient
                 comboBoxDatabases.SelectedIndex = 0;
         }
 
-        public PgSqlBackupTask GetTask()
+        public PGBackupTask GetTask()
         {
             int port = 0;
             int.TryParse(textBoxPort.Text, out port);
@@ -56,7 +56,7 @@ namespace DesktopClient
             int.TryParse(textBoxCount.Text, out maxCount);
             if (maxCount <= 0)
                 maxCount = 1;
-            var task = new PgSqlBackupTask()
+            var task = new PGBackupTask()
             {
                 Host = textBoxHost.Text,
                 Port = port,
@@ -72,7 +72,7 @@ namespace DesktopClient
             return task;
         }
 
-        public void SetTask(PgSqlBackupTask task)
+        public void SetTask(PGBackupTask task)
         {
             textBoxHost.Text = task.Host;
             textBoxPort.Text = task.Port.ToString();

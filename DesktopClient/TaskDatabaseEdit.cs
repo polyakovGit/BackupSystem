@@ -42,13 +42,13 @@ namespace DesktopClient
                 comboBoxDatabases.SelectedIndex = 0;
         }
 
-        public DbBackupTask GetTask()
+        public SQLBackupTask GetTask()
         {
             int maxCount = 1;
             int.TryParse(textBoxCount.Text, out maxCount);
             if (maxCount <= 0)
                 maxCount = 1;
-            var task = new DbBackupTask()
+            var task = new SQLBackupTask()
             {
                 Server = textBoxServerName.Text,
                 Login = textBoxNameUser.Text,
@@ -63,7 +63,7 @@ namespace DesktopClient
             return task;
         }
 
-        public void SetTask(DbBackupTask task)
+        public void SetTask(SQLBackupTask task)
         {
             textBoxServerName.Text = task.Server;
             textBoxNameUser.Text = task.Login;

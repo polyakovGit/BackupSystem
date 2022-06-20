@@ -79,7 +79,7 @@ namespace SharedData
     }
 
     [Serializable]
-    public class DbBackupTask : BackupTask
+    public class SQLBackupTask : BackupTask
     {
         public string Server = "";
         public string Login = "";
@@ -88,7 +88,7 @@ namespace SharedData
     }
 
     [Serializable]
-    public class PgSqlBackupTask : BackupTask
+    public class PGBackupTask : BackupTask
     {
         public string Host = "";
         public int Port = 0;
