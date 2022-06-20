@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerService", "ServerServ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientConfig", "ClientConfig\ClientConfig.csproj", "{F205B79D-24D4-47A2-B385-280ED6CC75BA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PgStore", "PgStore\PgStore.csproj", "{196D8225-9F4D-4490-9D74-0AAF15220DEE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{F205B79D-24D4-47A2-B385-280ED6CC75BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F205B79D-24D4-47A2-B385-280ED6CC75BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F205B79D-24D4-47A2-B385-280ED6CC75BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{196D8225-9F4D-4490-9D74-0AAF15220DEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{196D8225-9F4D-4490-9D74-0AAF15220DEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{196D8225-9F4D-4490-9D74-0AAF15220DEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{196D8225-9F4D-4490-9D74-0AAF15220DEE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

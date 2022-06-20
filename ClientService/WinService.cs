@@ -109,9 +109,41 @@ public class WinService : ServiceBase
                             {
                                 await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
                             }   
-                            
-                            FileInfo fi = new FileInfo(fullPath);
-                            await fi.DeleteAsync();
+                            finally
+                            {
+                                FileInfo fi = new FileInfo(fullPath);
+                                await fi.DeleteAsync();
+                            }                            
+                        }
+                        else if (task is (PgSqlBackupTask))
+                        {
+                            var pgTask = task as PgSqlBackupTask;
+                            string fullPath = Path.Combine(Path.GetTempPath(), file.NameFile);
+                            await File.WriteAllBytesAsync(fullPath, file.Bin);
+
+                            try
+                            {
+                                PgStore.Config pgConfig = new PgStore.Config();
+                                pgConfig.ServerName = pgTask.Host;
+                                pgConfig.Port = pgTask.Port;
+                                pgConfig.UserName = pgTask.UserId;
+                                pgConfig.Password = pgTask.Password;
+                                pgConfig.DataBase = pgTask.DbName;
+                                PgStore.Control.CurrentConfig = pgConfig;
+                                PgStore.Control.ResultChanged += Control_ResultChanged;
+                                await Task.Factory.StartNew(() => PgStore.Control.Restaure(fullPath, true));
+
+                                result = "OK";
+                            }
+                            catch (Exception ex)
+                            {
+                                await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
+                            }
+                            finally
+                            {
+                                FileInfo fi = new FileInfo(fullPath);
+                                await fi.DeleteAsync();
+                            }                            
                         }
 
                         if (result == "OK")
@@ -137,6 +169,156 @@ public class WinService : ServiceBase
                 Data = _tasks.ToArray()
             });
         }
+    }
+
+    private async Task<long> FileBackup(FileBackupTask fileTask, FilesInfo filesForBackup, 
+        List<BackupTask> updatedTasks, List<string> filesForDelete, long quotaAddBytes)
+    {
+        if (File.Exists(fileTask.FileName))
+        {
+            FileInfo fi = new FileInfo(fileTask.FileName);
+            if (fi.Length + quotaAddBytes + _tasks.UsedQuota <= _tasks.MaxQuota)
+            {
+                quotaAddBytes += fi.Length;
+                var backupTime = DateTime.Now;
+                filesForBackup.Add(fileTask.Id, backupTime, fileTask.FileName, await File.ReadAllBytesAsync(fileTask.FileName));
+                FileBackupTask updatedTask = fileTask;
+                updatedTask.Status = SharedData.TaskStatus.Working;
+                updatedTask.AddAction(TaskAction.Backup);
+                updatedTask.UpdateNextBackupTime();
+                updatedTask.BackupTimes.Add(backupTime);
+                updatedTasks.Add(updatedTask);
+            }
+            else
+            {
+                FileBackupTask updatedTask = fileTask;
+                updatedTask.Status = SharedData.TaskStatus.Error_Quota;
+                updatedTask.UpdateNextBackupTime();
+                updatedTasks.Add(updatedTask);
+            }
+        }
+        else
+        {
+            FileBackupTask updatedTask = fileTask;
+            updatedTask.Status = SharedData.TaskStatus.Error_NoFile;
+            updatedTask.UpdateNextBackupTime();
+            updatedTasks.Add(updatedTask);
+        }
+
+        return quotaAddBytes;
+    }
+
+    private async Task<long> SqlServerBackup(DbBackupTask dbTask, FilesInfo filesForBackup, 
+        List<BackupTask> updatedTasks, List<string> filesForDelete, long quotaAddBytes)
+    {
+        string fileName = $"{dbTask.DbName}.bak";
+        string fullPath = Path.Combine(Path.GetTempPath(), fileName);
+        try
+        {
+            SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
+            connStringBuilder.DataSource = dbTask.Server;
+            connStringBuilder.UserID = dbTask.Login;
+            connStringBuilder.Password = dbTask.Password;
+            using (SqlConnection connection = new SqlConnection(connStringBuilder.ConnectionString))
+            {
+                await connection.OpenAsync();
+                var formatMediaName = $"DatabaseToolkitBackup_{dbTask.DbName}";
+                var formatName = $"Full Backup of {dbTask.DbName}";
+                string query = "BACKUP DATABASE @databaseName TO DISK = @localDatabasePath WITH FORMAT, MEDIANAME = @formatMediaName, NAME = @formatName";
+                var sqlCommand = new SqlCommand(query, connection);
+                sqlCommand.Parameters.AddWithValue("@databaseName", dbTask.DbName);
+                sqlCommand.Parameters.AddWithValue("@localDatabasePath", fullPath);
+                sqlCommand.Parameters.AddWithValue("@formatMediaName", formatMediaName);
+                sqlCommand.Parameters.AddWithValue("@formatName", formatName);
+                await sqlCommand.ExecuteNonQueryAsync();
+            }
+
+            FileInfo fi = new FileInfo(fullPath);
+            if (fi.Length + quotaAddBytes + _tasks.UsedQuota <= _tasks.MaxQuota)
+            {
+                quotaAddBytes += fi.Length;
+                var backupTime = DateTime.Now;
+                filesForBackup.Add(dbTask.Id, backupTime, fullPath, await File.ReadAllBytesAsync(fullPath));
+                DbBackupTask updatedTask = dbTask;
+                updatedTask.Status = SharedData.TaskStatus.Working;
+                updatedTask.AddAction(TaskAction.Backup);
+                updatedTask.UpdateNextBackupTime();
+                updatedTask.BackupTimes.Add(backupTime);
+                updatedTasks.Add(updatedTask);
+            }
+            else
+            {
+                DbBackupTask updatedTask = dbTask;
+                updatedTask.Status = SharedData.TaskStatus.Error_Quota;
+                updatedTask.UpdateNextBackupTime();
+                updatedTasks.Add(updatedTask);
+            }
+        }
+        catch (Exception ex)
+        {
+            await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
+            DbBackupTask updatedTask = dbTask;
+            updatedTask.Status = SharedData.TaskStatus.Error_DbConnect;
+            updatedTask.UpdateNextBackupTime();
+            updatedTasks.Add(updatedTask);
+        }
+
+        return quotaAddBytes;
+    }
+
+    void Control_ResultChanged(object sender, EventArgs e)
+    {
+        File.AppendAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), sender.ToString() + "\n");
+    }
+
+    private async Task<long> PgSqlBackup(PgSqlBackupTask pgTask, FilesInfo filesForBackup, 
+        List<BackupTask> updatedTasks, List<string> filesForDelete, long quotaAddBytes)
+    {
+        string fileName = $"{pgTask.DbName}.backup";
+        string fullPath = Path.Combine(Path.GetTempPath(), fileName);
+        try
+        {
+            PgStore.Config pgConfig = new PgStore.Config();
+            pgConfig.ServerName = pgTask.Host;
+            pgConfig.Port = pgTask.Port;
+            pgConfig.UserName = pgTask.UserId;
+            pgConfig.Password = pgTask.Password;
+            pgConfig.DataBase = pgTask.DbName;
+            PgStore.Control.CurrentConfig = pgConfig;
+            PgStore.Control.ResultChanged += Control_ResultChanged;
+            await Task.Factory.StartNew(() => PgStore.Control.Backup(Path.GetTempPath(), fileName, true));
+
+            FileInfo fi = new FileInfo(fullPath);
+            if (fi.Length + quotaAddBytes + _tasks.UsedQuota <= _tasks.MaxQuota)
+            {
+                quotaAddBytes += fi.Length;
+                var backupTime = DateTime.Now;
+                filesForBackup.Add(pgTask.Id, backupTime, fullPath, await File.ReadAllBytesAsync(fullPath));
+                PgSqlBackupTask updatedTask = pgTask;
+                updatedTask.Status = SharedData.TaskStatus.Working;
+                updatedTask.AddAction(TaskAction.Backup);
+                updatedTask.UpdateNextBackupTime();
+                updatedTask.BackupTimes.Add(backupTime);
+                updatedTasks.Add(updatedTask);
+            }
+            else
+            {
+                PgSqlBackupTask updatedTask = pgTask;
+                updatedTask.Status = SharedData.TaskStatus.Error_Quota;
+                updatedTask.UpdateNextBackupTime();
+                updatedTasks.Add(updatedTask);
+            }
+        }
+        catch (Exception ex)
+        {
+            await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
+            PgSqlBackupTask updatedTask = pgTask;
+            updatedTask.Status = SharedData.TaskStatus.Error_DbConnect;
+            updatedTask.UpdateNextBackupTime();
+            updatedTasks.Add(updatedTask);
+        }
+
+        return quotaAddBytes;
     }
 
     private async Task Handler()
@@ -165,92 +347,18 @@ public class WinService : ServiceBase
 
                         if (task is FileBackupTask)
                         {
-                            FileBackupTask fileTask = task as FileBackupTask;
-                            if (File.Exists(fileTask.FileName))
-                            {
-                                FileInfo fi = new FileInfo(fileTask.FileName);
-                                if (fi.Length + quotaAddBytes + _tasks.UsedQuota <= _tasks.MaxQuota)
-                                {
-                                    quotaAddBytes += fi.Length;
-                                    var backupTime = DateTime.Now;
-                                    filesForBackup.Add(fileTask.Id, backupTime, fileTask.FileName, await File.ReadAllBytesAsync(fileTask.FileName));
-                                    FileBackupTask updatedTask = fileTask;
-                                    updatedTask.Status = SharedData.TaskStatus.Working;
-                                    updatedTask.AddAction(TaskAction.Backup);
-                                    updatedTask.UpdateNextBackupTime();
-                                    updatedTask.BackupTimes.Add(backupTime);
-                                    updatedTasks.Add(updatedTask);
-                                }
-                                else
-                                {
-                                    FileBackupTask updatedTask = fileTask;
-                                    updatedTask.Status = SharedData.TaskStatus.Error_Quota;
-                                    updatedTask.UpdateNextBackupTime();
-                                    updatedTasks.Add(updatedTask);
-                                }
-                            }
-                            else
-                            {
-                                FileBackupTask updatedTask = fileTask;
-                                updatedTask.Status = SharedData.TaskStatus.Error_NoFile;
-                                updatedTask.UpdateNextBackupTime();
-                                updatedTasks.Add(updatedTask);
-                            }
+                            quotaAddBytes = await FileBackup(task as FileBackupTask, filesForBackup, updatedTasks, 
+                                filesForDelete, quotaAddBytes);
                         }
-                        else //DbBackupTask
+                        else if (task is DbBackupTask)
                         {
-                            DbBackupTask dbTask = task as DbBackupTask;
-                            string fileName = $"{dbTask.DbName}.bak";
-                            string fullPath = Path.Combine(Path.GetTempPath(), fileName);
-                            try
-                            {
-                                SqlConnectionStringBuilder connStringBuilder = new SqlConnectionStringBuilder();
-                                connStringBuilder.DataSource = dbTask.Server;
-                                connStringBuilder.UserID = dbTask.Login;
-                                connStringBuilder.Password = dbTask.Password;
-                                using (SqlConnection connection = new SqlConnection(connStringBuilder.ConnectionString))
-                                {
-                                    await connection.OpenAsync();
-                                    var formatMediaName = $"DatabaseToolkitBackup_{dbTask.DbName}";
-                                    var formatName = $"Full Backup of {dbTask.DbName}";
-                                    string query = "BACKUP DATABASE @databaseName TO DISK = @localDatabasePath WITH FORMAT, MEDIANAME = @formatMediaName, NAME = @formatName";
-                                    var sqlCommand = new SqlCommand(query, connection);
-                                    sqlCommand.Parameters.AddWithValue("@databaseName", dbTask.DbName);
-                                    sqlCommand.Parameters.AddWithValue("@localDatabasePath", fullPath);
-                                    sqlCommand.Parameters.AddWithValue("@formatMediaName", formatMediaName);
-                                    sqlCommand.Parameters.AddWithValue("@formatName", formatName);
-                                    await sqlCommand.ExecuteNonQueryAsync();
-                                }
-
-                                FileInfo fi = new FileInfo(fullPath);
-                                if (fi.Length + quotaAddBytes + _tasks.UsedQuota <= _tasks.MaxQuota)
-                                {
-                                    quotaAddBytes += fi.Length;
-                                    var backupTime = DateTime.Now;
-                                    filesForBackup.Add(dbTask.Id, backupTime, fullPath, await File.ReadAllBytesAsync(fullPath));
-                                    DbBackupTask updatedTask = dbTask;
-                                    updatedTask.Status = SharedData.TaskStatus.Working;
-                                    updatedTask.AddAction(TaskAction.Backup);
-                                    updatedTask.UpdateNextBackupTime();
-                                    updatedTask.BackupTimes.Add(backupTime);
-                                    updatedTasks.Add(updatedTask);
-                                }
-                                else
-                                {
-                                    DbBackupTask updatedTask = dbTask;
-                                    updatedTask.Status = SharedData.TaskStatus.Error_Quota;
-                                    updatedTask.UpdateNextBackupTime();
-                                    updatedTasks.Add(updatedTask);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                await File.AppendAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log.txt"), ex.Message + "\n");
-                                DbBackupTask updatedTask = dbTask;
-                                updatedTask.Status = SharedData.TaskStatus.Error_DbConnect;
-                                updatedTask.UpdateNextBackupTime();
-                                updatedTasks.Add(updatedTask);
-                            }
+                            quotaAddBytes = await SqlServerBackup(task as DbBackupTask, filesForBackup, updatedTasks,
+                                filesForDelete, quotaAddBytes);
+                        }
+                        else if (task is PgSqlBackupTask)
+                        {
+                            quotaAddBytes = await PgSqlBackup(task as PgSqlBackupTask, filesForBackup, updatedTasks,
+                                filesForDelete, quotaAddBytes);
                         }
                     }
 

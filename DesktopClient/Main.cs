@@ -24,7 +24,9 @@ public partial class Main : Form
             if (task is FileBackupTask)
                 taskType = "Файл";
             else if (task is DbBackupTask)
-                taskType = "База данных";
+                taskType = "SQL Server";
+            else if (task is PgSqlBackupTask)
+                taskType = "PostgreSQL";
             else
                 taskType = "Неизвестно";
             ListViewItem.ListViewSubItem subItem = new ListViewItem.ListViewSubItem(lvi, taskType);
@@ -97,6 +99,26 @@ public partial class Main : Form
             dbTask.Password = newTask.Password;
             dbTask.DbName = newTask.DbName;
             Globals.Tasks.Data[dbTask.Id] = dbTask;
+            Globals.SendTasks();
+            UpdateTable(Globals.Tasks);
+        }
+        else if (task is PgSqlBackupTask)
+        {
+            var pgTask = task as PgSqlBackupTask;
+            var taskEditDlg = new TaskPgSqlEdit();
+            taskEditDlg.SetTask(pgTask);
+            if (taskEditDlg.ShowDialog() != DialogResult.OK)
+                return;
+            var newTask = taskEditDlg.GetTask();
+            pgTask.NextBackupTime = newTask.NextBackupTime;
+            pgTask.TypeTimeBackup = newTask.TypeTimeBackup;
+            pgTask.MaxCount = newTask.MaxCount;
+            pgTask.Host = newTask.Host;
+            pgTask.Port = newTask.Port;
+            pgTask.UserId = newTask.UserId;
+            pgTask.Password = newTask.Password;
+            pgTask.DbName = newTask.DbName;
+            Globals.Tasks.Data[pgTask.Id] = pgTask;
             Globals.SendTasks();
             UpdateTable(Globals.Tasks);
         }
@@ -216,5 +238,18 @@ public partial class Main : Form
         var historyDlg = new TaskHistory();
         historyDlg.UpdateHistoty(task);
         historyDlg.ShowDialog();
+    }
+
+    private void buttonAddPgSql_Click(object sender, EventArgs e)
+    {
+        var taskEditDlg = new TaskPgSqlEdit();
+        if (taskEditDlg.ShowDialog() != DialogResult.OK)
+            return;
+        var newTask = taskEditDlg.GetTask();
+        newTask.Id = Globals.Tasks.GetNextId();
+        newTask.AddAction(TaskAction.Created);
+        Globals.Tasks.Data[newTask.Id] = newTask;
+        Globals.SendTasks();
+        UpdateTable(Globals.Tasks);
     }
 }

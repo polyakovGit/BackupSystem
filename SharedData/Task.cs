@@ -91,4 +91,14 @@ namespace SharedData
         public string Password = "";
         public string DbName = "";
     }
+
+    [Serializable]
+    public class PgSqlBackupTask : BackupTask
+    {
+        public string Host = "";
+        public int Port = 0;
+        public string UserId = "";
+        public string Password = "";
+        public string DbName = "";
+    }
 }
