@@ -362,7 +362,7 @@ public class WinService : ServiceBase
                         }
                         else if (task is PgSqlBackupTask)
                         {
-                            quotaAddBytes = await PgSqlBackup(task as PgSqlBackupTask, filesForBackup, updatedTasks,
+                            quotaAddBytes = await PgSqlBackup(task as PGBackupTask, filesForBackup, updatedTasks,
                                 filesForDelete, quotaAddBytes);
                         }
                     }
