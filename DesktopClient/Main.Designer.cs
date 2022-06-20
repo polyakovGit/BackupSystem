@@ -35,7 +35,7 @@
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeaderId = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderType = new System.Windows.Forms.ColumnHeader();
-            this.columnHeaderServer = new System.Windows.Forms.ColumnHeader();
+            this.columnHeaderAddress = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
             this.columnHeaderSchedule = new System.Windows.Forms.ColumnHeader();
             this.buttonAddDb = new System.Windows.Forms.Button();
@@ -51,7 +51,7 @@
             // 
             // buttonAddFile
             // 
-            this.buttonAddFile.Location = new System.Drawing.Point(7, 23);
+            this.buttonAddFile.Location = new System.Drawing.Point(7, 22);
             this.buttonAddFile.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.buttonAddFile.Name = "buttonAddFile";
             this.buttonAddFile.Size = new System.Drawing.Size(51, 23);
@@ -89,7 +89,7 @@
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeaderId,
             this.columnHeaderType,
-            this.columnHeaderServer,
+            this.columnHeaderAddress,
             this.columnHeaderStatus,
             this.columnHeaderSchedule});
             this.listView1.FullRowSelect = true;
@@ -112,10 +112,10 @@
             this.columnHeaderType.Text = "Тип";
             this.columnHeaderType.Width = 100;
             // 
-            // columnHeaderServer
+            // columnHeaderAddress
             // 
-            this.columnHeaderServer.Text = "Сервер";
-            this.columnHeaderServer.Width = 100;
+            this.columnHeaderAddress.Text = "Адрес";
+            this.columnHeaderAddress.Width = 100;
             // 
             // columnHeaderStatus
             // 
@@ -129,7 +129,7 @@
             // 
             // buttonAddDb
             // 
-            this.buttonAddDb.Location = new System.Drawing.Point(65, 23);
+            this.buttonAddDb.Location = new System.Drawing.Point(65, 22);
             this.buttonAddDb.Name = "buttonAddDb";
             this.buttonAddDb.Size = new System.Drawing.Size(74, 23);
             this.buttonAddDb.TabIndex = 2;
@@ -245,7 +245,7 @@
         private Button buttonDelete;
         private ListView listView1;
         private ColumnHeader columnHeaderType;
-        private ColumnHeader columnHeaderServer;
+        private ColumnHeader columnHeaderAddress;
         private ColumnHeader columnHeaderStatus;
         private ColumnHeader columnHeaderSchedule;
         private Button buttonAddDb;

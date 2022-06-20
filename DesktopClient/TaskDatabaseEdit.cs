@@ -10,7 +10,6 @@ namespace DesktopClient
         public TaskDatabaseEdit()
         {
             InitializeComponent();
-            comboBoxSchedule.SelectedIndex = 0;
         }
 
         private void buttonConnect_Click(object sender, EventArgs e)
@@ -55,10 +54,11 @@ namespace DesktopClient
                 Login = textBoxNameUser.Text,
                 Password = textBoxPass.Text,
                 DbName = comboBoxDatabases.Text,
-                NextBackupTime = dateTimePicker1.Value,
-                TypeTimeBackup = comboBoxSchedule.SelectedIndex,
+                Schedule = scheduleControl.GetSchedule(),
                 MaxCount = maxCount
             };
+
+            task.NextBackupTime = task.Schedule.GetFirstDateTime();
 
             return task;
         }
@@ -69,8 +69,7 @@ namespace DesktopClient
             textBoxNameUser.Text = task.Login;
             textBoxPass.Text = task.Password;
             comboBoxDatabases.Text = task.DbName;
-            dateTimePicker1.Value = task.NextBackupTime;
-            comboBoxSchedule.SelectedIndex = task.TypeTimeBackup;
+            scheduleControl.SetSchedule(task.Schedule);
             textBoxCount.Text = task.MaxCount.ToString();
         }
     }

@@ -13,6 +13,8 @@ public partial class Main : Form
 
     public void UpdateTable(TasksInfo tasks)
     {
+        this.Text = $"Задания сервера {Globals.Config.ServerIp}:{Globals.Config.ServerPort}";
+
         listView1.Items.Clear();
         foreach (var task in tasks.Data.Values.OrderBy(t => t.Id))
         {
@@ -31,7 +33,7 @@ public partial class Main : Form
                 taskType = "Неизвестно";
             ListViewItem.ListViewSubItem subItem = new ListViewItem.ListViewSubItem(lvi, taskType);
             lvi.SubItems.Add(subItem);
-            subItem = new ListViewItem.ListViewSubItem(lvi, Globals.Config.ServerIp);
+            subItem = new ListViewItem.ListViewSubItem(lvi, task.Address);
             lvi.SubItems.Add(subItem);
             subItem = new ListViewItem.ListViewSubItem(lvi, task.GetStatusString());
             lvi.SubItems.Add(subItem);
@@ -54,6 +56,7 @@ public partial class Main : Form
         if (string.IsNullOrEmpty(newTask.FileName))
             return;
         newTask.Id = Globals.Tasks.GetNextId();
+        newTask.Address = Globals.IpAddress;
         newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();
@@ -76,7 +79,7 @@ public partial class Main : Form
                 return;
             var newTask = taskEditDlg.GetTask();
             task.NextBackupTime = newTask.NextBackupTime;
-            task.TypeTimeBackup = newTask.TypeTimeBackup;
+            task.Schedule = newTask.Schedule;
             task.MaxCount = newTask.MaxCount;
             (task as FileBackupTask).FileName = newTask.FileName;
             Globals.Tasks.Data[task.Id] = task;
@@ -92,7 +95,7 @@ public partial class Main : Form
                 return;
             var newTask = taskEditDlg.GetTask();
             dbTask.NextBackupTime = newTask.NextBackupTime;
-            dbTask.TypeTimeBackup = newTask.TypeTimeBackup;
+            dbTask.Schedule = newTask.Schedule;
             dbTask.MaxCount = newTask.MaxCount;
             dbTask.Server = newTask.Server;
             dbTask.Login = newTask.Login;
@@ -111,7 +114,7 @@ public partial class Main : Form
                 return;
             var newTask = taskEditDlg.GetTask();
             pgTask.NextBackupTime = newTask.NextBackupTime;
-            pgTask.TypeTimeBackup = newTask.TypeTimeBackup;
+            pgTask.Schedule = newTask.Schedule;
             pgTask.MaxCount = newTask.MaxCount;
             pgTask.Host = newTask.Host;
             pgTask.Port = newTask.Port;
@@ -174,6 +177,7 @@ public partial class Main : Form
             return;
         var newTask = taskEditDlg.GetTask();
         newTask.Id = Globals.Tasks.GetNextId();
+        newTask.Address = Globals.IpAddress;
         newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();
@@ -247,6 +251,7 @@ public partial class Main : Form
             return;
         var newTask = taskEditDlg.GetTask();
         newTask.Id = Globals.Tasks.GetNextId();
+        newTask.Address = Globals.IpAddress;
         newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();

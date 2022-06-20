@@ -14,6 +14,7 @@ public static class Globals
     public static TasksInfo Tasks;
     private static TcpConnection? _connection;
     public static Main? MainWindow;
+    public static string IpAddress = "";
 
     public static Login Login = null;
     public static bool connected = false;
@@ -32,6 +33,7 @@ public static class Globals
             connected = true;
             _connection.RegisterStaticPacketHandler<SharedRequest>(RecvHandler);
             _connection.TIMEOUT = 600000;
+            IpAddress = _connection.IPLocalEndPoint.Address.MapToIPv4().ToString();
             return true;
         }
 

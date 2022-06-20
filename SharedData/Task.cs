@@ -33,20 +33,15 @@ namespace SharedData
         public int Id = -1; //ID задания
         public List<DateTime> BackupTimes = new List<DateTime>(); //Список времен текущих резервных копий
         public DateTime NextBackupTime = DateTime.MaxValue; //Время следующего резервирования
-        public int TypeTimeBackup = 0; //Тип расписания
+        public Schedule Schedule = new Schedule();
         public TaskStatus Status = TaskStatus.New; //Статус
         public int MaxCount = 1; //Количество хранимых резервных копий
         public List<TaskHistory> History = new List<TaskHistory>();
+        public string Address = "";
 
         public void UpdateNextBackupTime()
         {
-            NextBackupTime = TypeTimeBackup switch
-            {
-                0 => NextBackupTime.AddDays(1), // Ежедневно
-                1 => NextBackupTime.AddDays(1), // Еженедельно
-                2 => NextBackupTime.AddMonths(1), //Ежемесячно
-                _ => DateTime.MaxValue //Ошибочный тип
-            };
+            NextBackupTime = Schedule.GetNextDateTime(NextBackupTime);
         }
 
         public string GetStatusString()
@@ -65,11 +60,11 @@ namespace SharedData
 
         public string GetScheduleString()
         {
-            return TypeTimeBackup switch
+            return Schedule.Type switch
             {
-                0 => "Ежедневно",
-                1 => "Еженедельно",
-                2 => "Ежемесячно",
+                ScheduleType.Daily => "Ежедневно",
+                ScheduleType.Weekly => "Еженедельно",
+                ScheduleType.Monthly => "Ежемесячно",
                 _ => "-"
             };
         }

@@ -15,6 +15,7 @@ public class WinService : ServiceBase
     private bool _isWork = false;
     private TasksInfo _tasks;
     private TcpConnection? _client;
+    private string _address = "";
 
     public WinService()
     {
@@ -52,6 +53,7 @@ public class WinService : ServiceBase
             _client = result.Item1;
             _client.RegisterPacketHandler<SharedRequest>(RecvHandler, this);
             _client.TIMEOUT = 600000;
+            _address = _client.IPLocalEndPoint.Address.MapToIPv4().ToString();
         }
     }
 
@@ -74,6 +76,8 @@ public class WinService : ServiceBase
                         if (!_tasks.Data.ContainsKey(file.Id))
                             continue;
                         var task = _tasks.Data[file.Id];
+                        if (task.Address != _address)
+                            continue;
                         if (task is FileBackupTask)
                         {
                             await Task.Run(() => Directory.CreateDirectory(Path.GetDirectoryName(file.NameFile)));
@@ -340,7 +344,8 @@ public class WinService : ServiceBase
                     var filesForDelete = new List<string>();
                     foreach (var task in _tasks.Data.Values.Where(task => 
                         task.NextBackupTime <= DateTime.Now 
-                        && task.Status != SharedData.TaskStatus.Disabled))
+                        && task.Status != SharedData.TaskStatus.Disabled
+                        && task.Address == _address))
                     {
                         if (task == null)
                             continue;

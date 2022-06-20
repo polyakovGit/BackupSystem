@@ -8,7 +8,6 @@ namespace DesktopClient
         public TaskFileEdit()
         {
             InitializeComponent();
-            comboBox1.SelectedIndex = 0;
         }
 
         private void buttonSelect_Click(object sender, EventArgs e)
@@ -35,10 +34,11 @@ namespace DesktopClient
             var task = new FileBackupTask()
             {
                 FileName = textBoxFilename.Text,
-                NextBackupTime = dateTimePicker1.Value,
-                TypeTimeBackup = comboBox1.SelectedIndex,
+                Schedule = scheduleControl.GetSchedule(),
                 MaxCount = maxCount
             };
+
+            task.NextBackupTime = task.Schedule.GetFirstDateTime();
 
             return task;
         }
@@ -46,8 +46,7 @@ namespace DesktopClient
         public void SetTask(FileBackupTask task)
         {
             textBoxFilename.Text = task.FileName;
-            dateTimePicker1.Value = task.NextBackupTime;
-            comboBox1.SelectedIndex = task.TypeTimeBackup;
+            scheduleControl.SetSchedule(task.Schedule);
             textBoxCount.Text = task.MaxCount.ToString();
         }
     }

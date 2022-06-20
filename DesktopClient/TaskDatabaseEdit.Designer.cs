@@ -39,12 +39,11 @@
             this.label4 = new System.Windows.Forms.Label();
             this.textBoxServerName = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.comboBoxSchedule = new System.Windows.Forms.ComboBox();
-            this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
             this.buttonOk = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.textBoxCount = new System.Windows.Forms.TextBox();
+            this.scheduleControl = new DesktopClient.ScheduleControl();
             this.SuspendLayout();
             // 
             // label1
@@ -138,37 +137,16 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(12, 179);
+            this.label5.Location = new System.Drawing.Point(15, 214);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(75, 15);
             this.label5.TabIndex = 12;
             this.label5.Text = "Расписание:";
             // 
-            // comboBoxSchedule
-            // 
-            this.comboBoxSchedule.FormattingEnabled = true;
-            this.comboBoxSchedule.Items.AddRange(new object[] {
-            "Ежедневно",
-            "Еженедельно",
-            "Ежемесячно"});
-            this.comboBoxSchedule.Location = new System.Drawing.Point(143, 176);
-            this.comboBoxSchedule.Name = "comboBoxSchedule";
-            this.comboBoxSchedule.Size = new System.Drawing.Size(121, 23);
-            this.comboBoxSchedule.TabIndex = 6;
-            // 
-            // dateTimePicker1
-            // 
-            this.dateTimePicker1.Format = System.Windows.Forms.DateTimePickerFormat.Time;
-            this.dateTimePicker1.Location = new System.Drawing.Point(270, 176);
-            this.dateTimePicker1.Name = "dateTimePicker1";
-            this.dateTimePicker1.ShowUpDown = true;
-            this.dateTimePicker1.Size = new System.Drawing.Size(84, 23);
-            this.dateTimePicker1.TabIndex = 7;
-            // 
             // buttonOk
             // 
             this.buttonOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOk.Location = new System.Drawing.Point(231, 238);
+            this.buttonOk.Location = new System.Drawing.Point(219, 277);
             this.buttonOk.Name = "buttonOk";
             this.buttonOk.Size = new System.Drawing.Size(75, 23);
             this.buttonOk.TabIndex = 8;
@@ -178,7 +156,7 @@
             // buttonCancel
             // 
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(312, 238);
+            this.buttonCancel.Location = new System.Drawing.Point(310, 277);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
             this.buttonCancel.TabIndex = 9;
@@ -188,7 +166,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(12, 208);
+            this.label6.Location = new System.Drawing.Point(12, 179);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(260, 15);
             this.label6.TabIndex = 13;
@@ -196,12 +174,19 @@
             // 
             // textBoxCount
             // 
-            this.textBoxCount.Location = new System.Drawing.Point(278, 205);
+            this.textBoxCount.Location = new System.Drawing.Point(278, 176);
             this.textBoxCount.MaxLength = 5;
             this.textBoxCount.Name = "textBoxCount";
             this.textBoxCount.Size = new System.Drawing.Size(56, 23);
             this.textBoxCount.TabIndex = 14;
             this.textBoxCount.Text = "1";
+            // 
+            // scheduleControl
+            // 
+            this.scheduleControl.Location = new System.Drawing.Point(143, 208);
+            this.scheduleControl.Name = "scheduleControl";
+            this.scheduleControl.Size = new System.Drawing.Size(199, 63);
+            this.scheduleControl.TabIndex = 15;
             // 
             // TaskDatabaseEdit
             // 
@@ -209,13 +194,12 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(397, 273);
+            this.ClientSize = new System.Drawing.Size(397, 312);
+            this.Controls.Add(this.scheduleControl);
             this.Controls.Add(this.textBoxCount);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonOk);
-            this.Controls.Add(this.dateTimePicker1);
-            this.Controls.Add(this.comboBoxSchedule);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.textBoxServerName);
             this.Controls.Add(this.label4);
@@ -250,11 +234,10 @@
         private Label label4;
         private TextBox textBoxServerName;
         private Label label5;
-        private ComboBox comboBoxSchedule;
-        private DateTimePicker dateTimePicker1;
         private Button buttonOk;
         private Button buttonCancel;
         private Label label6;
         private TextBox textBoxCount;
+        private ScheduleControl scheduleControl;
     }
 }
