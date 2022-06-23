@@ -1,32 +1,102 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="SharedData.BackupTask">
-    <Position X="9.75" Y="0.75" Width="1.5" />
+    <Position X="7" Y="0.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AQACAgAEAAACEAAAAAAgAAAAAEQAAAACAAACAAAgAAA=</HashCode>
       <FileName>Task.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SharedData.FileBackupTask">
-    <Position X="11.5" Y="0.75" Width="1.5" />
+    <Position X="5.25" Y="3" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAA=</HashCode>
       <FileName>Task.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SharedData.SQLBackupTask">
-    <Position X="11.5" Y="2.25" Width="1.5" />
+    <Position X="8.75" Y="0.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAEAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAQAgAAAAA=</HashCode>
       <FileName>Task.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="SharedData.PGBackupTask">
-    <Position X="8" Y="0.75" Width="1.5" />
+    <Position X="5.25" Y="0.75" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAAEAAAAAAAAAAAAAAAAAAgACAAACAACAAAAAAAAAAA=</HashCode>
       <FileName>Task.cs</FileName>
     </TypeIdentifier>
   </Class>
+  <Class Name="SharedData.FilesInfo">
+    <Position X="6.5" Y="4.5" Width="2" />
+    <NestedTypes>
+      <Struct Name="SharedData.FilesInfo.FileStruct" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>FilesInfo.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Struct>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAAAABAAAACAAABAAAA=</HashCode>
+      <FileName>FilesInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedData.Schedule">
+    <Position X="3.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAAAAAAAAAAEAAAAAAAAAAgAAQCAQAEAAAAAQA=</HashCode>
+      <FileName>Schedule.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedData.TasksInfo">
+    <Position X="10.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAiAAAAABAAAAAAAAAAAiAAABAEAAAAAABAEAA=</HashCode>
+      <FileName>TasksInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedData.SharedResponse">
+    <Position X="8.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>SharedClass.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedData.SharedRequest">
+    <Position X="8.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAABAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>SharedClass.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Struct Name="SharedData.TaskHistory">
+    <Position X="12.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAQ=</HashCode>
+      <FileName>Task.cs</FileName>
+    </TypeIdentifier>
+  </Struct>
+  <Enum Name="SharedData.ScheduleType">
+    <Position X="3.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAgAAAAAAgA=</HashCode>
+      <FileName>Schedule.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SharedData.TaskStatus">
+    <Position X="12.25" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgEAAAAAAACAAAACAAAAAAAAAAAgAAAAIAAAAAAA=</HashCode>
+      <FileName>Task.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="SharedData.TaskAction">
+    <Position X="12.25" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAAAAAAAAAAAAACAAAAAAAAAAQAAAAAAAAAAAA=</HashCode>
+      <FileName>Task.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>
