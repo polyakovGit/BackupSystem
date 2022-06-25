@@ -15,6 +15,7 @@ public static class Globals
     private static TcpConnection? _connection;
     public static Main? MainWindow;
     public static string IpAddress = "";
+    public static int Port = 0;
 
     public static Login Login = null;
     public static bool connected = false;
@@ -34,6 +35,7 @@ public static class Globals
             _connection.RegisterStaticPacketHandler<SharedRequest>(RecvHandler);
             _connection.TIMEOUT = 600000;
             IpAddress = _connection.IPLocalEndPoint.Address.MapToIPv4().ToString();
+            Port = _connection.IPLocalEndPoint.Port;
             return true;
         }
 
@@ -110,7 +112,7 @@ public static class Globals
         });
     }
 
-    public static async void SendRestore(int id)
+    public static async void SendRestore(RestoreTask restoreTask)
     {
         if (_connection == null)
             return;
@@ -118,7 +120,7 @@ public static class Globals
         await _connection.SendAsync<SharedResponse>(new SharedRequest()
         {
             Command = "restore",
-            Data = BitConverter.GetBytes(id)
+            Data = restoreTask.ToArray()
         });
     }
 

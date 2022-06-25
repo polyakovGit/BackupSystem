@@ -38,6 +38,7 @@ namespace SharedData
         public int MaxCount = 1; //Количество хранимых резервных копий
         public List<TaskHistory> History = new List<TaskHistory>();
         public string Address = "";
+        public int LocalPort = 0;
 
         public void UpdateNextBackupTime()
         {

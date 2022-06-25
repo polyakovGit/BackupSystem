@@ -117,10 +117,10 @@ namespace ServerService
                     }
                 case "restore":
                     {
-                        int id = BitConverter.ToInt32(packet.Data, 0);
-                        if (_tasks.Data.ContainsKey(id))
+                        RestoreTask restoreTask = RestoreTask.FromArray(packet.Data);
+                        if (_tasks.Data.ContainsKey(restoreTask.Id))
                         {
-                            var task = _tasks.Data[id];
+                            var task = _tasks.Data[restoreTask.Id];
                             string filename = "";
                             if (task is FileBackupTask)
                             {
@@ -130,20 +130,24 @@ namespace ServerService
                             {
                                 filename = (task as SQLBackupTask).DbName + ".bak";
                             }
+                            else if (task is PGBackupTask)
+                            {
+                                filename = (task as PGBackupTask).DbName + ".backup";
+                            }
                             else
                             {
                                 break;
                             }
                             var fullPath = Path.Combine(exePath, 
-                                BACKUP_FOLDER, 
-                                id.ToString(),
+                                BACKUP_FOLDER,
+                                restoreTask.Id.ToString(),
                                 task.BackupTimes.Max().ToString("yyMMdd_HHmmss"), 
                                 Path.GetFileName(filename));
                             if (File.Exists(fullPath))
                             {
-                                await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"->Restore task {id}\n");
+                                await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"->Restore task {restoreTask.Id}\n");
                                 var restoreFile = new FilesInfo();
-                                restoreFile.Add(id, DateTime.MinValue,  filename, await File.ReadAllBytesAsync(fullPath));
+                                restoreFile.Add(restoreTask.Id, DateTime.MinValue, restoreTask.Path, await File.ReadAllBytesAsync(fullPath));
                                 foreach (TcpConnection tcpConnection in _server.TCP_Connections)
                                 {
                                     if (tcpConnection != connection)

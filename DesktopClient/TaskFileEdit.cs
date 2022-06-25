@@ -13,12 +13,9 @@ namespace DesktopClient
         private void buttonSelect_Click(object sender, EventArgs e)
         {
             var dialog = new OpenFileDialog();
-            if (!string.IsNullOrEmpty(textBoxFilename.Text))
-            {
-                dialog.InitialDirectory = !string.IsNullOrEmpty(textBoxFilename.Text) 
-                    ? Path.GetDirectoryName(textBoxFilename.Text) 
-                    : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            }
+            dialog.InitialDirectory = !string.IsNullOrEmpty(textBoxFilename.Text) 
+                ? Path.GetDirectoryName(textBoxFilename.Text) 
+                : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (dialog.ShowDialog() != DialogResult.OK)
                 return;
 

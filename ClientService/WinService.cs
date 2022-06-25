@@ -87,7 +87,7 @@ public class WinService : ServiceBase
                         else if (task is (SQLBackupTask))
                         {
                             var dbTask = task as SQLBackupTask;
-                            string fullPath = Path.Combine(Path.GetTempPath(), file.NameFile);
+                            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.NameFile + ".bak");
                             await File.WriteAllBytesAsync(fullPath, file.Bin);
 
                             try
@@ -98,13 +98,33 @@ public class WinService : ServiceBase
                                 connStringBuilder.Password = dbTask.Password;
                                 using (SqlConnection conn = new SqlConnection(connStringBuilder.ConnectionString))
                                 {
+                                    string dataFile = $"C:\\{file.NameFile}.mdf";
+                                    string logFile = $"C:\\{file.NameFile}_log.ldf";
                                     await conn.OpenAsync();
-                                    string query = @"RESTORE DATABASE @databaseName 
-                                        FROM DISK = @localDatabasePath 
-                                        WITH REPLACE";
+                                    var query = @"RESTORE FILELISTONLY FROM DISK = @localDatabasePath";
                                     var sqlCommand = new SqlCommand(query, conn);
-                                    sqlCommand.Parameters.AddWithValue("@databaseName", dbTask.DbName);
                                     sqlCommand.Parameters.AddWithValue("@localDatabasePath", fullPath);
+                                    var sqlDataReader = await sqlCommand.ExecuteReaderAsync();
+                                    while (await sqlDataReader.ReadAsync())
+                                    {
+                                        if (sqlDataReader["Type"].ToString() == "D")
+                                            dataFile = sqlDataReader["PhysicalName"].ToString().Replace(dbTask.DbName, file.NameFile);
+                                        else if (sqlDataReader["Type"].ToString() == "L")
+                                            logFile = sqlDataReader["PhysicalName"].ToString().Replace(dbTask.DbName, file.NameFile);
+                                    }
+                                    await sqlDataReader.CloseAsync();
+                                    query = @"RESTORE DATABASE @databaseName 
+                                        FROM DISK = @localDatabasePath 
+                                        WITH REPLACE, 
+                                            MOVE @TemplateDatabase TO @NewDatabaseData,
+                                            MOVE @TemplateDatabaseLog TO @NewDatabaseLog;";
+                                    sqlCommand = new SqlCommand(query, conn);
+                                    sqlCommand.Parameters.AddWithValue("@databaseName", file.NameFile);
+                                    sqlCommand.Parameters.AddWithValue("@localDatabasePath", fullPath);
+                                    sqlCommand.Parameters.AddWithValue("@TemplateDatabase", dbTask.DbName);
+                                    sqlCommand.Parameters.AddWithValue("@TemplateDatabaseLog", dbTask.DbName+"_log");
+                                    sqlCommand.Parameters.AddWithValue("@NewDatabaseData", dataFile);
+                                    sqlCommand.Parameters.AddWithValue("@NewDatabaseLog", logFile);
                                     await sqlCommand.ExecuteNonQueryAsync();
                                 }
                                 result = "OK";
@@ -122,7 +142,7 @@ public class WinService : ServiceBase
                         else if (task is (PGBackupTask))
                         {
                             var pgTask = task as PGBackupTask;
-                            string fullPath = Path.Combine(Path.GetTempPath(), file.NameFile);
+                            string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, file.NameFile + ".backup");
                             await File.WriteAllBytesAsync(fullPath, file.Bin);
 
                             try
@@ -132,7 +152,7 @@ public class WinService : ServiceBase
                                 pgConfig.Port = pgTask.Port;
                                 pgConfig.UserName = pgTask.UserId;
                                 pgConfig.Password = pgTask.Password;
-                                pgConfig.DataBase = pgTask.DbName;
+                                pgConfig.DataBase = file.NameFile;
                                 PgStore.Control.CurrentConfig = pgConfig;
                                 PgStore.Control.ResultChanged += Control_ResultChanged;
                                 await Task.Factory.StartNew(() => PgStore.Control.Restaure(fullPath, true));

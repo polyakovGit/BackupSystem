@@ -33,7 +33,7 @@ public partial class Main : Form
                 taskType = "Неизвестно";
             ListViewItem.ListViewSubItem subItem = new ListViewItem.ListViewSubItem(lvi, taskType);
             lvi.SubItems.Add(subItem);
-            subItem = new ListViewItem.ListViewSubItem(lvi, task.Address);
+            subItem = new ListViewItem.ListViewSubItem(lvi, $"{task.Address}:{task.LocalPort}");
             lvi.SubItems.Add(subItem);
             subItem = new ListViewItem.ListViewSubItem(lvi, task.GetStatusString());
             lvi.SubItems.Add(subItem);
@@ -57,6 +57,7 @@ public partial class Main : Form
             return;
         newTask.Id = Globals.Tasks.GetNextId();
         newTask.Address = Globals.IpAddress;
+        newTask.LocalPort = Globals.Port;
         newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();
@@ -178,6 +179,7 @@ public partial class Main : Form
         var newTask = taskEditDlg.GetTask();
         newTask.Id = Globals.Tasks.GetNextId();
         newTask.Address = Globals.IpAddress;
+        newTask.LocalPort = Globals.Port;
         newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();
@@ -191,7 +193,39 @@ public partial class Main : Form
             BackupTask task = (BackupTask)listView1.SelectedItems[0].Tag;
             if (task == null)
                 return;
-            Globals.SendRestore(task.Id);
+            if (task is FileBackupTask)
+            {
+                FileBackupTask fileTask = task as FileBackupTask;
+                var dialog = new RestoreFile();
+                dialog.textBoxFilename.Text = fileTask.FileName;
+                if (dialog.ShowDialog() != DialogResult.OK)
+                    return;
+                RestoreTask restoreTask = new RestoreTask(fileTask.Id, 
+                    string.IsNullOrEmpty(dialog.textBoxFilename.Text) ? fileTask.FileName : dialog.textBoxFilename.Text);
+                Globals.SendRestore(restoreTask);
+            }
+            else if (task is SQLBackupTask)
+            {
+                SQLBackupTask sqlTask = task as SQLBackupTask;
+                var dialog = new RestoreDb();
+                dialog.textBoxDbName.Text = sqlTask.DbName;
+                if (dialog.ShowDialog() != DialogResult.OK)
+                    return;
+                RestoreTask restoreTask = new RestoreTask(sqlTask.Id,
+                    string.IsNullOrEmpty(dialog.textBoxDbName.Text) ? sqlTask.DbName : dialog.textBoxDbName.Text);
+                Globals.SendRestore(restoreTask);
+            }
+            else if (task is PGBackupTask)
+            {
+                PGBackupTask pgTask = task as PGBackupTask;
+                var dialog = new RestoreDb();
+                dialog.textBoxDbName.Text = pgTask.DbName;
+                if (dialog.ShowDialog() != DialogResult.OK)
+                    return;
+                RestoreTask restoreTask = new RestoreTask(pgTask.Id,
+                    string.IsNullOrEmpty(dialog.textBoxDbName.Text) ? pgTask.DbName : dialog.textBoxDbName.Text);
+                Globals.SendRestore(restoreTask);
+            }
         }
     }
 
@@ -252,6 +286,7 @@ public partial class Main : Form
         var newTask = taskEditDlg.GetTask();
         newTask.Id = Globals.Tasks.GetNextId();
         newTask.Address = Globals.IpAddress;
+        newTask.LocalPort = Globals.Port;
         newTask.AddAction(TaskAction.Created);
         Globals.Tasks.Data[newTask.Id] = newTask;
         Globals.SendTasks();

@@ -121,13 +121,13 @@ public class Server
                 }
             case "restore":
                 {
-                    int id = BitConverter.ToInt32(packet.Data, 0);
-                    if (_tasks.Data.ContainsKey(id))
+                    RestoreTask restoreTask = RestoreTask.FromArray(packet.Data);
+                    if (_tasks.Data.ContainsKey(restoreTask.Id))
                     {
-                        var task = _tasks.Data[id];
+                        var task = _tasks.Data[restoreTask.Id];
                         if (task.BackupTimes.Count != 0)
                         {
-                            string filename = "";
+                            string filename = restoreTask.Path;
                             if (task is FileBackupTask)
                             {
                                 filename = (task as FileBackupTask).FileName;
@@ -136,20 +136,20 @@ public class Server
                             {
                                 filename = (task as SQLBackupTask).DbName + ".bak";
                             }
-                            else
+                            else if (task is PGBackupTask)
                             {
-                                break;
+                                filename = (task as PGBackupTask).DbName + ".backup";
                             }
 
-                            var fullPath = Path.Combine(BACKUP_FOLDER, 
-                                id.ToString(), 
+                            var fullPath = Path.Combine(BACKUP_FOLDER,
+                                restoreTask.Id.ToString(), 
                                 task.BackupTimes.Max().ToString("yyMMdd_HHmmss"), 
                                 Path.GetFileName(filename));
                             if (File.Exists(fullPath))
                             {
-                                Console.WriteLine($"->Restore task {id}\n");
+                                Console.WriteLine($"->Restore task {restoreTask.Id}\n");
                                 var restoreFile = new FilesInfo();
-                                restoreFile.Add(id, DateTime.MinValue, filename, await File.ReadAllBytesAsync(fullPath));
+                                restoreFile.Add(restoreTask.Id, DateTime.MinValue, restoreTask.Path, await File.ReadAllBytesAsync(fullPath));
                                 foreach (TcpConnection tcpConnection in _server.TCP_Connections)
                                 {
                                     if (tcpConnection != connection)
