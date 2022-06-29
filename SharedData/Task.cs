@@ -92,9 +92,9 @@ namespace SharedData
     public class PGBackupTask : BackupTask
     {
         public string Host = "";
-        public int Port = 0;
         public string UserId = "";
         public string Password = "";
         public string DbName = "";
+        public int Port = 0;
     }
 }

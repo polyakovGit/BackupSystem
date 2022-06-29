@@ -3,7 +3,7 @@
   <Class Name="SharedData.BackupTask">
     <Position X="7" Y="0.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AQACAgAEAAACEAAAAAAgAAAAAEQAAAACAAACAAAgAAA=</HashCode>
+      <HashCode>AQACAgAMAAACEAAAAAAgAAAAAEQAAAACAAACAAAgAAA=</HashCode>
       <FileName>Task.cs</FileName>
     </TypeIdentifier>
   </Class>
