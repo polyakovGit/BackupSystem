@@ -1,4 +1,3 @@
-
 using ServerService;
 
 var pathBackup =Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"BackupFiles");

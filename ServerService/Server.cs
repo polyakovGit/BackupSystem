@@ -1,6 +1,5 @@
 using Network;
 using SharedData;
-using System.IO;
 using System.Collections.ObjectModel;
 using System.Text;
 using Newtonsoft.Json;
@@ -14,7 +13,6 @@ namespace ServerService
         private const string TASKS_FILENAME = "Tasks.json";
         private const string BACKUP_FOLDER = "BackupFiles";
         private TasksInfo _tasks;
-
         string exePath = AppDomain.CurrentDomain.BaseDirectory;
         public static ObservableCollection<UserStruct> userDB { get; set; } = new ObservableCollection<UserStruct>();
 
@@ -42,7 +40,6 @@ namespace ServerService
             if (File.Exists(Path.Combine(exePath, "users.json")))
             {
                 userDB = JsonConvert.DeserializeObject<ObservableCollection<UserStruct>>(File.ReadAllText(Path.Combine(exePath, "users.json")));
-
                 File.AppendAllText(Path.Combine(exePath, "log.txt"), $"Loaded {userDB.Count.ToString()} users\n");
             }
             else
@@ -55,7 +52,6 @@ namespace ServerService
         }
         private async void HandlerCommand(SharedRequest packet, Connection connection)
         {
-
             var result = "Error";
             switch (packet.Command)
             {
@@ -84,7 +80,6 @@ namespace ServerService
                 case "backup":
                     {
                         await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), "->Get files for backup\n");
-
                         var files = FilesInfo.FromBin(packet.Data);
                         foreach (var file in files.Data)
                         {
@@ -99,20 +94,16 @@ namespace ServerService
                 case "Login":
                     {
                         string[] logData = Encoding.UTF8.GetString(packet.Data).Split(new string[] { " &*&*& " }, StringSplitOptions.None);
-
                         string username = logData[0];
                         string password = logData[1];
-
                         lock (userDB)
                         {
                             var user = userDB.FirstOrDefault(x => x.Username == username && x.Password == password);
-
                             if (user != null)
                                 SendLoginState(true, connection);
                             else
                                 SendLoginState(false, connection);
                         }
-
                         break;
                     }
                 case "restore":
@@ -162,7 +153,6 @@ namespace ServerService
 
                             }
                         }
-
                         result = "OK";
                         break;
                     }
@@ -170,7 +160,6 @@ namespace ServerService
                     await File.AppendAllTextAsync(Path.Combine(exePath, "log.txt"), $"-> Command not found! ({packet.Command})\n");
                     break;
             }
-
             connection.Send(new SharedResponse(result, packet));
         }
 
@@ -187,7 +176,6 @@ namespace ServerService
                     Directory.Delete(dir.FullName, true);
                 }
             }
-
             List<BackupTask> backupTasks = new List<BackupTask>(_tasks.Data.Values);
             foreach (var task in backupTasks)
             {

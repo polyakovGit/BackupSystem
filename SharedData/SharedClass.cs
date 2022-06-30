@@ -11,7 +11,6 @@ public class SharedResponse : ResponsePacket
     {
         this.Result = result;
     }
-
     public string Result { get; set; }
 }
 

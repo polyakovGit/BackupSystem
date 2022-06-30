@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
 using Newtonsoft.Json;
 
-
 namespace SharedData
 {
     [Serializable]
@@ -56,7 +55,6 @@ namespace SharedData
                     return taskInfo;
                 }
             }
-
             return new TasksInfo();
         }
 

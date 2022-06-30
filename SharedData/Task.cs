@@ -1,6 +1,5 @@
 ﻿using System;
 
-
 namespace SharedData
 {
     public enum TaskStatus
